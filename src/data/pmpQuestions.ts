@@ -8,6 +8,63 @@ export interface PMPQuestion {
   difficulty: 'easy' | 'medium' | 'hard';
 }
 
+// Função para embaralhar array (Fisher-Yates shuffle)
+function shuffleArray<T>(array: T[], seed: number): T[] {
+  const shuffled = [...array];
+  let currentIndex = shuffled.length;
+  let randomIndex;
+
+  // Usando seed para gerar números pseudo-aleatórios
+  const seededRandom = () => {
+    seed = (seed * 9301 + 49297) % 233280;
+    return seed / 233280;
+  };
+
+  while (currentIndex !== 0) {
+    randomIndex = Math.floor(seededRandom() * currentIndex);
+    currentIndex--;
+    [shuffled[currentIndex], shuffled[randomIndex]] = [shuffled[randomIndex], shuffled[currentIndex]];
+  }
+
+  return shuffled;
+}
+
+// Gera uma seed baseada na sessão atual
+function getSessionSeed(): number {
+  const stored = sessionStorage.getItem('pmp-quiz-seed');
+  if (stored) {
+    return parseInt(stored, 10);
+  }
+  const newSeed = Math.floor(Math.random() * 1000000);
+  sessionStorage.setItem('pmp-quiz-seed', newSeed.toString());
+  return newSeed;
+}
+
+// Função para obter perguntas embaralhadas para a sessão
+export function getShuffledQuestions(): PMPQuestion[] {
+  const seed = getSessionSeed();
+  return shuffleArray(pmpQuestions, seed);
+}
+
+// Função para resetar a sessão e obter novas perguntas
+export function resetQuizSession(): void {
+  sessionStorage.removeItem('pmp-quiz-seed');
+}
+
+export const domains = [
+  "Stakeholders",
+  "Equipe",
+  "Abordagem de Desenvolvimento",
+  "Planejamento",
+  "Trabalho do Projeto",
+  "Entrega",
+  "Métricas e Incertezas",
+  "Comunicação",
+  "Processo",
+  "Ambiente Corporativo",
+  "Liderança"
+];
+
 export const pmpQuestions: PMPQuestion[] = [
   // STAKEHOLDER DOMAIN (1-25)
   {
@@ -26,31 +83,31 @@ export const pmpQuestions: PMPQuestion[] = [
   },
   {
     id: 2,
-    question: "No PMBOK 7ª Edição, como os stakeholders são categorizados?",
+    question: "Você está gerenciando um projeto e precisa classificar stakeholders. Qual matriz usa níveis de poder e interesse?",
     options: [
-      "Por nível hierárquico apenas",
-      "Por interesse, poder e impacto no projeto",
-      "Por ordem alfabética",
-      "Por antiguidade na organização"
+      "Matriz de rastreabilidade",
+      "Matriz poder/interesse para classificar stakeholders",
+      "Matriz de responsabilidades",
+      "Matriz de comunicação"
     ],
     correctAnswer: 1,
-    explanation: "Os stakeholders são analisados por seu interesse, poder e impacto potencial no projeto para determinar estratégias de engajamento adequadas.",
+    explanation: "A matriz de poder/interesse classifica stakeholders ajudando a determinar estratégias de comunicação e engajamento apropriadas. Stakeholders com alto poder e alto interesse devem ser gerenciados de perto.",
     domain: "Stakeholders",
     difficulty: "medium"
   },
   {
     id: 3,
-    question: "O que significa 'identificar stakeholders' em um projeto?",
+    question: "Para gerenciar efetivamente seus stakeholders, você decide realizar uma matriz de avaliação de engajamento. Quais níveis de engajamento essa técnica usa para classificação?",
     options: [
-      "Listar apenas os membros da equipe",
-      "Reconhecer todas as pessoas e organizações afetadas pelo projeto",
-      "Identificar apenas os patrocinadores",
-      "Listar os concorrentes"
+      "Poder e interesse",
+      "Poder, urgência e legitimidade",
+      "Inconsciente, resistente, neutro, apoiador, líder",
+      "Para cima, para baixo, para fora e para os lados"
     ],
-    correctAnswer: 1,
-    explanation: "Identificar stakeholders envolve reconhecer todas as pessoas, grupos ou organizações que podem afetar ou serem afetados pelo projeto.",
+    correctAnswer: 2,
+    explanation: "A matriz de avaliação de engajamento classifica stakeholders em cinco níveis: Inconsciente (não sabe do projeto), Resistente (não apoia), Neutro (indiferente), Apoiador (apoia) e Líder (engajado ativamente).",
     domain: "Stakeholders",
-    difficulty: "easy"
+    difficulty: "medium"
   },
   {
     id: 4,
@@ -68,15 +125,15 @@ export const pmpQuestions: PMPQuestion[] = [
   },
   {
     id: 5,
-    question: "O que é uma matriz de poder/interesse?",
+    question: "Ricardo acaba de assumir um projeto em andamento para criar uma marca de produtos. Para conhecer todos os fornecedores envolvidos no projeto, Ricardo deve conferir:",
     options: [
-      "Uma ferramenta para calcular custos",
-      "Uma ferramenta para classificar stakeholders por seu nível de poder e interesse",
-      "Um documento contratual",
-      "Uma ferramenta de cronograma"
+      "RFQs",
+      "Registro das partes interessadas",
+      "Propostas de fornecedores",
+      "Plano de engajamento das partes interessadas"
     ],
     correctAnswer: 1,
-    explanation: "A matriz de poder/interesse classifica stakeholders ajudando a determinar estratégias de comunicação e engajamento apropriadas.",
+    explanation: "O registro de partes interessadas (stakeholder register) contém informações sobre todos os stakeholders do projeto, incluindo fornecedores, clientes, equipe e outros interessados.",
     domain: "Stakeholders",
     difficulty: "easy"
   },
@@ -264,17 +321,17 @@ export const pmpQuestions: PMPQuestion[] = [
   },
   {
     id: 19,
-    question: "Qual ferramenta ajuda a visualizar níveis de engajamento atuais vs desejados?",
+    question: "Stakeholders com alto poder e alto interesse devem ser:",
     options: [
-      "Diagrama de Gantt",
-      "Matriz de avaliação de engajamento de stakeholders",
-      "WBS",
-      "Diagrama de rede"
+      "Mantidos informados apenas",
+      "Gerenciados de perto com engajamento ativo contínuo",
+      "Monitorados à distância",
+      "Ignorados para evitar interferência"
     ],
     correctAnswer: 1,
-    explanation: "A matriz de avaliação de engajamento mostra os níveis atuais e desejados de engajamento para cada stakeholder.",
+    explanation: "Stakeholders com alto poder e alto interesse precisam de engajamento ativo e gerenciamento próximo.",
     domain: "Stakeholders",
-    difficulty: "medium"
+    difficulty: "easy"
   },
   {
     id: 20,
@@ -290,80 +347,10 @@ export const pmpQuestions: PMPQuestion[] = [
     domain: "Stakeholders",
     difficulty: "medium"
   },
+
+  // TEAM DOMAIN (21-45)
   {
     id: 21,
-    question: "Em um projeto da NASA com múltiplas agências internacionais, o desafio principal de stakeholders é:",
-    options: [
-      "Falta de tecnologia",
-      "Coordenar diferentes interesses, culturas e requisitos de cada agência",
-      "Orçamento insuficiente",
-      "Falta de expertise técnica"
-    ],
-    correctAnswer: 1,
-    explanation: "Projetos internacionais exigem coordenação cuidadosa entre diferentes culturas organizacionais e nacionais.",
-    domain: "Stakeholders",
-    difficulty: "hard"
-  },
-  {
-    id: 22,
-    question: "O que significa 'monitorar o engajamento dos stakeholders'?",
-    options: [
-      "Espionar as atividades dos stakeholders",
-      "Acompanhar e ajustar estratégias conforme relacionamentos e ambiente mudam",
-      "Enviar relatórios semanais",
-      "Contar o número de reuniões"
-    ],
-    correctAnswer: 1,
-    explanation: "Monitorar significa acompanhar continuamente a eficácia das estratégias de engajamento e ajustá-las conforme necessário.",
-    domain: "Stakeholders",
-    difficulty: "medium"
-  },
-  {
-    id: 23,
-    question: "Stakeholders com alto poder e alto interesse devem ser:",
-    options: [
-      "Mantidos informados apenas",
-      "Gerenciados de perto com engajamento ativo contínuo",
-      "Monitorados à distância",
-      "Ignorados para evitar interferência"
-    ],
-    correctAnswer: 1,
-    explanation: "Stakeholders com alto poder e alto interesse precisam de engajamento ativo e gerenciamento próximo.",
-    domain: "Stakeholders",
-    difficulty: "easy"
-  },
-  {
-    id: 24,
-    question: "A análise de stakeholders ajuda a identificar:",
-    options: [
-      "Apenas riscos técnicos",
-      "Aliados potenciais, oponentes e estratégias de influência",
-      "O cronograma do projeto",
-      "Os custos exatos"
-    ],
-    correctAnswer: 1,
-    explanation: "A análise revela o posicionamento dos stakeholders e ajuda a desenvolver estratégias apropriadas para cada um.",
-    domain: "Stakeholders",
-    difficulty: "medium"
-  },
-  {
-    id: 25,
-    question: "Um stakeholder que bloqueia ativamente o projeto é classificado como:",
-    options: [
-      "Líder",
-      "Resistente ou oponente",
-      "Neutro",
-      "Apoiador"
-    ],
-    correctAnswer: 1,
-    explanation: "Stakeholders que trabalham contra o projeto são classificados como resistentes ou oponentes.",
-    domain: "Stakeholders",
-    difficulty: "easy"
-  },
-
-  // TEAM DOMAIN (26-50)
-  {
-    id: 26,
     question: "O que caracteriza uma equipe de alto desempenho?",
     options: [
       "Trabalho individual sem interação",
@@ -377,7 +364,7 @@ export const pmpQuestions: PMPQuestion[] = [
     difficulty: "easy"
   },
   {
-    id: 27,
+    id: 22,
     question: "Qual modelo descreve os estágios de desenvolvimento de equipe?",
     options: [
       "Modelo PDCA",
@@ -391,7 +378,7 @@ export const pmpQuestions: PMPQuestion[] = [
     difficulty: "medium"
   },
   {
-    id: 28,
+    id: 23,
     question: "O que significa 'servant leadership' no contexto de projetos?",
     options: [
       "O líder manda e a equipe obedece",
@@ -405,7 +392,35 @@ export const pmpQuestions: PMPQuestion[] = [
     difficulty: "medium"
   },
   {
-    id: 29,
+    id: 24,
+    question: "Durante sua longa experiência como gerente de projetos, Felipe sempre seguiu um estilo de liderança servidora. Todos os itens a seguir implicam características de liderança servidora, EXCETO:",
+    options: [
+      "Promover o crescimento profissional dos membros da equipe",
+      "Priorizar as necessidades do time antes de todo o resto",
+      "Desenvolver futuros líderes servidores",
+      "Passar instruções detalhadas sobre o trabalho do projeto"
+    ],
+    correctAnswer: 3,
+    explanation: "Liderança servidora não se trata de dar instruções detalhadas (comando e controle), mas de servir, capacitar e desenvolver a equipe. Dar instruções detalhadas é característica de liderança diretiva, não servidora.",
+    domain: "Equipe",
+    difficulty: "hard"
+  },
+  {
+    id: 25,
+    question: "Sofia é designada para liderar seu primeiro projeto. Ela pretende se concentrar em aumentar a lealdade dos membros promovendo seu bem-estar no trabalho e fora dele. Qual teoria motivacional Sofia planeja adotar?",
+    options: [
+      "Teoria da expectativa",
+      "Teoria X",
+      "Teoria Y",
+      "Teoria Z"
+    ],
+    correctAnswer: 3,
+    explanation: "A Teoria Z enfatiza lealdade, bem-estar dos funcionários e equilíbrio entre vida pessoal e trabalho. É baseada em práticas de gestão japonesas que promovem emprego de longo prazo e cuidado holístico com os funcionários.",
+    domain: "Equipe",
+    difficulty: "hard"
+  },
+  {
+    id: 26,
     question: "Em um projeto de exploração petrolífera no Brasil, a equipe é multicultural. O líder deve:",
     options: [
       "Impor uma única cultura de trabalho",
@@ -419,7 +434,7 @@ export const pmpQuestions: PMPQuestion[] = [
     difficulty: "medium"
   },
   {
-    id: 30,
+    id: 27,
     question: "Qual é o papel do gerente de projeto no desenvolvimento da equipe?",
     options: [
       "Apenas delegar tarefas",
@@ -433,7 +448,7 @@ export const pmpQuestions: PMPQuestion[] = [
     difficulty: "easy"
   },
   {
-    id: 31,
+    id: 28,
     question: "O conflito em equipes de projeto:",
     options: [
       "Deve sempre ser evitado",
@@ -447,7 +462,7 @@ export const pmpQuestions: PMPQuestion[] = [
     difficulty: "medium"
   },
   {
-    id: 32,
+    id: 29,
     question: "Na estágio 'Storming' do modelo de Tuckman, a equipe:",
     options: [
       "Trabalha em harmonia perfeita",
@@ -461,7 +476,7 @@ export const pmpQuestions: PMPQuestion[] = [
     difficulty: "medium"
   },
   {
-    id: 33,
+    id: 30,
     question: "Inteligência emocional em um líder de projeto inclui:",
     options: [
       "Apenas conhecimento técnico",
@@ -475,7 +490,7 @@ export const pmpQuestions: PMPQuestion[] = [
     difficulty: "medium"
   },
   {
-    id: 34,
+    id: 31,
     question: "Em uma equipe virtual da NASA trabalhando em fusos horários diferentes, o desafio principal é:",
     options: [
       "Falta de tecnologia",
@@ -489,7 +504,7 @@ export const pmpQuestions: PMPQuestion[] = [
     difficulty: "medium"
   },
   {
-    id: 35,
+    id: 32,
     question: "A motivação intrínseca da equipe vem de:",
     options: [
       "Apenas aumentos salariais",
@@ -503,7 +518,7 @@ export const pmpQuestions: PMPQuestion[] = [
     difficulty: "medium"
   },
   {
-    id: 36,
+    id: 33,
     question: "Uma matriz RACI é usada para:",
     options: [
       "Calcular custos",
@@ -517,7 +532,21 @@ export const pmpQuestions: PMPQuestion[] = [
     difficulty: "easy"
   },
   {
-    id: 37,
+    id: 34,
+    question: "Você é responsável por uma RFP e usa a matriz RACI. Quando recebe reclamações de fornecedores sobre requisitos contraditórios na RFP escrita por Marcelo (R=Responsável), quem você deve consultar?",
+    options: [
+      "Joana (Aprovador)",
+      "Marcelo (Responsável)",
+      "Tiago (Informado)",
+      "Samanta (Consultada)"
+    ],
+    correctAnswer: 1,
+    explanation: "Na matriz RACI, o 'R' (Responsável) é quem executa o trabalho. Marcelo, sendo o responsável por escrever a RFP, deve ser consultado para esclarecer os requisitos contraditórios.",
+    domain: "Equipe",
+    difficulty: "medium"
+  },
+  {
+    id: 35,
     question: "Em projetos ágeis, equipes são tipicamente:",
     options: [
       "Rigidamente hierárquicas",
@@ -531,7 +560,7 @@ export const pmpQuestions: PMPQuestion[] = [
     difficulty: "easy"
   },
   {
-    id: 38,
+    id: 36,
     question: "O que é 'psychological safety' em uma equipe?",
     options: [
       "Segurança física no local de trabalho",
@@ -545,7 +574,7 @@ export const pmpQuestions: PMPQuestion[] = [
     difficulty: "hard"
   },
   {
-    id: 39,
+    id: 37,
     question: "Qual é a melhor abordagem para resolver conflitos em uma equipe?",
     options: [
       "O gerente decide unilateralmente",
@@ -559,7 +588,7 @@ export const pmpQuestions: PMPQuestion[] = [
     difficulty: "medium"
   },
   {
-    id: 40,
+    id: 38,
     question: "Em um projeto offshore na Nigéria, a comunicação da equipe em plataformas remotas deve:",
     options: [
       "Ser mínima para não atrapalhar o trabalho",
@@ -573,7 +602,7 @@ export const pmpQuestions: PMPQuestion[] = [
     difficulty: "medium"
   },
   {
-    id: 41,
+    id: 39,
     question: "O conceito de 'T-shaped' se refere a profissionais que:",
     options: [
       "Trabalham apenas em formato de T",
@@ -587,7 +616,7 @@ export const pmpQuestions: PMPQuestion[] = [
     difficulty: "hard"
   },
   {
-    id: 42,
+    id: 40,
     question: "Feedback construtivo deve ser:",
     options: [
       "Dado apenas no final do projeto",
@@ -600,122 +629,436 @@ export const pmpQuestions: PMPQuestion[] = [
     domain: "Equipe",
     difficulty: "easy"
   },
+  
+  // COMUNICAÇÃO (41-60)
+  {
+    id: 41,
+    question: "Você está liderando uma equipe de 6 engenheiros em um ambiente de trabalho em espaço aberto. Um membro da equipe ouviu sua conversa telefônica e fez uma correção. Que tipo de comunicação está sendo usada?",
+    options: [
+      "Comunicação em espaço aberto",
+      "Distração da comunicação",
+      "Comunicação indireta",
+      "Comunicação osmótica"
+    ],
+    correctAnswer: 3,
+    explanation: "Comunicação osmótica ocorre quando informações fluem naturalmente em um ambiente de trabalho compartilhado, permitindo que membros da equipe absorvam informações relevantes sem comunicação direta intencional.",
+    domain: "Comunicação",
+    difficulty: "medium"
+  },
+  {
+    id: 42,
+    question: "Lucas usa e-mails para comunicação. Ao formular seus e-mails, ele usa todas as técnicas a seguir, EXCETO:",
+    options: [
+      "Expressões breves e diretas",
+      "Consideração das necessidades do leitor",
+      "Fluência de palavras e ideias",
+      "Variação de tom"
+    ],
+    correctAnswer: 3,
+    explanation: "Em comunicação profissional por e-mail, a variação de tom é evitada para manter consistência e clareza. Expressões breves, consideração do leitor e fluência de ideias são práticas recomendadas.",
+    domain: "Comunicação",
+    difficulty: "medium"
+  },
   {
     id: 43,
-    question: "A co-localização de equipes tem como principal benefício:",
+    question: "Seu patrocinador será substituído por duas novas pessoas, aumentando de 11 para 12 membros. Ele diz que isso não afetará a complexidade da comunicação. Ele está correto?",
     options: [
-      "Redução de custos de equipamento",
-      "Comunicação mais rápida e construção natural de relacionamentos",
-      "Controle mais rígido",
-      "Redução de salários"
+      "Sim, porque o patrocinador tem sempre razão",
+      "Sim, adicionar uma pessoa adiciona apenas um canal de comunicação",
+      "Não, as equipes ágeis devem ser pequenas",
+      "Não, adicionar uma pessoa adiciona mais de um canal de comunicação"
     ],
-    correctAnswer: 1,
-    explanation: "Equipes co-localizadas se comunicam mais facilmente e desenvolvem relacionamentos mais fortes naturalmente.",
-    domain: "Equipe",
-    difficulty: "easy"
+    correctAnswer: 3,
+    explanation: "A fórmula de canais de comunicação é n(n-1)/2. Com 11 pessoas = 55 canais. Com 12 pessoas = 66 canais. Adicionar uma pessoa adicionou 11 novos canais, não apenas 1.",
+    domain: "Comunicação",
+    difficulty: "hard"
   },
   {
     id: 44,
-    question: "Um membro da equipe consistentemente não entrega. O gerente deve primeiro:",
+    question: "Regina está apresentando seu projeto em um evento empresarial. Para engajar o público durante a apresentação, Regina deve:",
     options: [
-      "Demiti-lo imediatamente",
-      "Entender a causa raiz através de conversa individual e oferecer suporte",
-      "Ignorar esperando melhora espontânea",
-      "Criticá-lo publicamente"
+      "Apontar para o público",
+      "Fazer contato visual",
+      "Acenar com as mãos constantemente",
+      "Ficar em pé imóvel"
     ],
     correctAnswer: 1,
-    explanation: "É importante entender os fatores por trás do baixo desempenho antes de tomar ações corretivas.",
-    domain: "Equipe",
-    difficulty: "medium"
+    explanation: "O contato visual é uma técnica fundamental de comunicação que ajuda a estabelecer conexão, demonstrar confiança e manter o público engajado durante apresentações.",
+    domain: "Comunicação",
+    difficulty: "easy"
   },
   {
     id: 45,
-    question: "Em projetos de engenharia complexos, como missões da NASA, o tamanho ideal de uma equipe central é:",
+    question: "Barbara está em uma reunião e é questionada sobre algo do projeto anterior. Ela não sabe a resposta. O que fazer?",
     options: [
-      "Quanto maior melhor",
-      "Pequeno o suficiente para comunicação eficaz, tipicamente 5-9 pessoas",
-      "Exatamente 2 pessoas",
-      "Mais de 50 pessoas sempre"
+      "Perguntar se outro participante pode responder",
+      "Mudar de assunto",
+      "Dizer que a pergunta é irrelevante",
+      "Admitir que não sabe e prometer retornar após verificar"
     ],
-    correctAnswer: 1,
-    explanation: "Equipes menores facilitam comunicação e coordenação, seguindo princípios como o 'número de Miller' (7±2).",
-    domain: "Equipe",
-    difficulty: "medium"
+    correctAnswer: 3,
+    explanation: "A resposta mais profissional é admitir honestamente que não sabe a resposta e comprometer-se a buscar a informação correta com a equipe, demonstrando integridade e responsabilidade.",
+    domain: "Comunicação",
+    difficulty: "easy"
   },
+  
+  // PROCESSO - SCRUM & ÁGIL (46-80)
   {
     id: 46,
-    question: "O que é 'team charter'?",
+    question: "André trabalha como gerente de projetos e sua organização decidiu adotar Agile. Ele ficou preocupado em perder o emprego. Suas preocupações são justificadas?",
     options: [
-      "Contrato de trabalho individual",
-      "Documento que define propósito, valores, normas e acordos de trabalho da equipe",
-      "Cronograma do projeto",
-      "Lista de membros"
+      "Sim, a equipe ágil não inclui um gerente de projeto",
+      "Sim, ele deve se converter para Scrum Master",
+      "Não, ele pode trabalhar como Product Owner",
+      "Não, ele pode continuar como gerente de projetos, sendo mais um facilitador"
     ],
-    correctAnswer: 1,
-    explanation: "Team charter é um acordo que estabelece como a equipe trabalhará junta, incluindo valores e normas.",
-    domain: "Equipe",
+    correctAnswer: 3,
+    explanation: "Em ambientes ágeis, o gerente de projeto assume papel de facilitador, removendo impedimentos, coaching da equipe e conectando com a organização. O papel evolui mas não desaparece.",
+    domain: "Processo",
     difficulty: "medium"
   },
   {
     id: 47,
-    question: "Empowerment da equipe significa:",
+    question: "Qual é o papel do Scrum Master durante o stand-up diário?",
     options: [
-      "O gerente toma todas as decisões",
-      "Dar autoridade e autonomia para a equipe tomar decisões dentro de seu escopo",
-      "Eliminar supervisão",
-      "Aumentar apenas salários"
+      "Parabenizar a equipe quando fizerem um bom trabalho",
+      "Ouvir a equipe para identificar impedimentos",
+      "Perguntar a cada membro o que realizaram",
+      "Está proibido de participar"
     ],
     correctAnswer: 1,
-    explanation: "Empowerment envolve delegar autoridade real para que a equipe possa tomar decisões e agir autonomamente.",
-    domain: "Equipe",
-    difficulty: "easy"
+    explanation: "O Scrum Master não conduz a Daily Scrum - é uma reunião da equipe de desenvolvimento. Seu papel é ouvir para identificar impedimentos que precisam ser removidos e garantir que a reunião seja eficiente.",
+    domain: "Processo",
+    difficulty: "medium"
   },
   {
     id: 48,
-    question: "A teoria de Herzberg sobre motivação distingue entre:",
+    question: "Durante uma sprint, a equipe Scrum percebeu que selecionou mais itens do que poderia concluir. O que fazer?",
     options: [
-      "Custos fixos e variáveis",
-      "Fatores higiênicos (evitam insatisfação) e motivadores (criam satisfação)",
-      "Tarefas críticas e não-críticas",
-      "Riscos e oportunidades"
+      "Pedir ao Scrum Master para alocar mais recursos",
+      "Discutir na próxima retrospectiva",
+      "Trabalhar horas extras",
+      "Informar o Product Owner que alguns itens devem ser removidos"
     ],
-    correctAnswer: 1,
-    explanation: "Herzberg identificou fatores higiênicos que previnem insatisfação e motivadores que geram satisfação real.",
-    domain: "Equipe",
-    difficulty: "hard"
+    correctAnswer: 3,
+    explanation: "O Product Owner é responsável pelo backlog e priorização. Quando a equipe percebe que não conseguirá completar todos os itens, deve comunicar ao PO para negociar a remoção de itens menos prioritários.",
+    domain: "Processo",
+    difficulty: "medium"
   },
   {
     id: 49,
-    question: "Reconhecimento de conquistas da equipe deve ser:",
+    question: "Correlacione os eventos Scrum: Daily Scrum serve para:",
     options: [
-      "Dado apenas no final do projeto",
-      "Oportuno, específico e alinhado com os valores da equipe",
-      "Sempre monetário",
-      "Evitado para não criar expectativas"
+      "Estimar esforço para completar histórias",
+      "Inspecionar o progresso em direção à meta do sprint",
+      "Apresentar o incremento para stakeholders",
+      "Discutir melhorias para próximos sprints"
     ],
     correctAnswer: 1,
-    explanation: "Reconhecimento eficaz é dado no momento certo, é específico e reflete o que a equipe valoriza.",
-    domain: "Equipe",
+    explanation: "A Daily Scrum é uma reunião de 15 minutos onde a equipe de desenvolvimento inspeciona o progresso em direção à Meta do Sprint e adapta o Sprint Backlog conforme necessário.",
+    domain: "Processo",
     difficulty: "easy"
   },
   {
     id: 50,
-    question: "O estágio 'Performing' do modelo de Tuckman é caracterizado por:",
+    question: "Você está gerenciando um projeto Scrum usando a sequência de Fibonacci. Você estimou '5' mas sua equipe acha que é '3'. Qual deve ser a estimativa final?",
     options: [
-      "Conflitos intensos",
-      "Alta produtividade, autonomia e resolução eficaz de problemas",
-      "Formação inicial da equipe",
-      "Dissolução do grupo"
+      "3",
+      "8",
+      "5",
+      "Discutir mais para chegar a um consenso"
     ],
-    correctAnswer: 1,
-    explanation: "Na fase Performing, a equipe atinge alta produtividade, trabalhando de forma autônoma e eficaz.",
-    domain: "Equipe",
-    difficulty: "easy"
+    correctAnswer: 3,
+    explanation: "Quando há divergência nas estimativas, a prática correta é discutir para entender as diferentes perspectivas e chegar a um consenso. O Planning Poker usa discussão para alinhar entendimento.",
+    domain: "Processo",
+    difficulty: "medium"
   },
-
-  // DEVELOPMENT APPROACH & LIFE CYCLE (51-75)
   {
     id: 51,
+    question: "O que é dívida técnica?",
+    options: [
+      "Bugs causados por omissão ou erros",
+      "Refatoração de código",
+      "O custo de retrabalho devido a recursos perdidos",
+      "O custo do retrabalho devido à qualidade de código degradada"
+    ],
+    correctAnswer: 3,
+    explanation: "Dívida técnica é o custo implícito de retrabalho futuro causado por escolher uma solução rápida/fácil agora em vez de uma abordagem melhor que levaria mais tempo. Resulta em código degradado.",
+    domain: "Processo",
+    difficulty: "hard"
+  },
+  {
+    id: 52,
+    question: "Ronaldo, um carpinteiro, recebeu pedido para produzir uma única unidade de um novo conceito de cadeira da forma mais rápida e barata possível. Como se chama esse produto?",
+    options: [
+      "Versão de pré-produção",
+      "Incremento do produto",
+      "Produto mínimo viável (MVP)",
+      "Amostra"
+    ],
+    correctAnswer: 2,
+    explanation: "Um MVP (Produto Mínimo Viável) é a versão mais simples de um produto que pode ser liberada para validar hipóteses e obter feedback, com o mínimo de recursos investidos.",
+    domain: "Processo",
+    difficulty: "medium"
+  },
+  {
+    id: 53,
+    question: "Depois de verificar o gráfico de burndown, você descobre que há muito trabalho e será difícil concluir até o final da sprint. O que fazer?",
+    options: [
+      "Solicitar reunião urgente para exigir horas extras",
+      "Enviar e-mail para todos pressionando por mais esforço",
+      "Aguardar a próxima stand-up para entender o ritmo lento",
+      "Aguardar a retrospectiva para refletir"
+    ],
+    correctAnswer: 2,
+    explanation: "A Daily Scrum é o momento apropriado para a equipe inspecionar o progresso, identificar problemas e adaptar o plano. É uma reunião de inspeção e adaptação, não de cobrança.",
+    domain: "Processo",
+    difficulty: "medium"
+  },
+  {
+    id: 54,
+    question: "Uma grande história de usuário envolvendo um novo requisito, que precisa ser dividida para várias iterações, é conhecida como:",
+    options: [
+      "Característica",
+      "Épico",
+      "Release",
+      "Marco"
+    ],
+    correctAnswer: 1,
+    explanation: "Um Épico é uma grande história de usuário que é muito grande para ser completada em uma única sprint e precisa ser dividida em histórias menores.",
+    domain: "Processo",
+    difficulty: "easy"
+  },
+  {
+    id: 55,
+    question: "Elias é o facilitador de uma Revisão da Sprint. Um membro demonstrou um recurso e perguntou como evitar falta de documentação técnica no futuro. O que Elias deve fazer?",
+    options: [
+      "Deixar a discussão fluir naturalmente",
+      "Pedir ao membro para refletir em outra reunião",
+      "Interromper para que o PO não saiba da falta de documentação",
+      "Deixar continuar e pedir ao PO feedback sobre melhorias"
+    ],
+    correctAnswer: 1,
+    explanation: "A Sprint Review é para revisar o que foi feito e adaptar o backlog. Discussões sobre processos e melhorias devem ser reservadas para a Retrospectiva da Sprint.",
+    domain: "Processo",
+    difficulty: "hard"
+  },
+  {
+    id: 56,
+    question: "Ana está gerenciando um projeto ágil. Durante a sessão de planejamento da sprint, todos tinham estimativas diferentes. O PO estimou '2', você '3', e dois engenheiros juniores estimaram '5'. Qual deve ser aplicada?",
+    options: [
+      "2, porque o PO conhece mais o negócio",
+      "3, porque você tem experiência anterior",
+      "5, pois são os membros que vão trabalhar na história",
+      "3, como média de todas as estimativas"
+    ],
+    correctAnswer: 2,
+    explanation: "As estimativas devem refletir o esforço de quem vai executar o trabalho. A equipe de desenvolvimento que conhece a complexidade técnica deve ter a palavra final nas estimativas.",
+    domain: "Processo",
+    difficulty: "hard"
+  },
+  {
+    id: 57,
+    question: "Durante a reunião de retrospectiva, um membro reclamou que as reuniões de planejamento demoram muito por tarefas não detalhadas. O que Ana deve fazer?",
+    options: [
+      "Estabelecer regra proibindo tarefas não detalhadas",
+      "Incentivar sessões de refinamento do backlog com o Product Owner",
+      "Ignorar a menos que outros concordem",
+      "Dividir a reunião de planejamento em sessões menores"
+    ],
+    correctAnswer: 1,
+    explanation: "O Refinamento do Backlog (Backlog Grooming) é a prática de detalhar, estimar e clarificar itens do backlog antes do Sprint Planning, tornando as reuniões de planejamento mais eficientes.",
+    domain: "Processo",
+    difficulty: "medium"
+  },
+  {
+    id: 58,
+    question: "George pergunta por que não há documentação formal em um projeto ágil. A resposta correta é:",
+    options: [
+      "Documentação é reduzida ao mínimo para atender requisitos regulamentares",
+      "Projetos ágeis não exigem documentação",
+      "Documentação é feita apenas para funcionalidades concluídas",
+      "Ágil requer documentação sofisticada que estão atrasados"
+    ],
+    correctAnswer: 0,
+    explanation: "Ágil valoriza 'software funcionando sobre documentação abrangente', mas isso não significa sem documentação. A documentação é mantida em nível suficiente para atender necessidades regulamentares e de comunicação.",
+    domain: "Processo",
+    difficulty: "medium"
+  },
+  {
+    id: 59,
+    question: "Em um ambiente ágil, quem é responsável por gerenciar o projeto?",
+    options: [
+      "Scrum Master",
+      "Membros da equipe",
+      "Product Owner",
+      "Gerente do projeto"
+    ],
+    correctAnswer: 1,
+    explanation: "Em Scrum e metodologias ágeis, a equipe de desenvolvimento é auto-organizada e responsável por gerenciar seu próprio trabalho. O Scrum Master facilita e o PO prioriza, mas a equipe gerencia a execução.",
+    domain: "Processo",
+    difficulty: "medium"
+  },
+  {
+    id: 60,
+    question: "Irina usa 'horas ideais' para dimensionar tarefas. Quais outros termos podem se referir a 'horas ideais'?",
+    options: [
+      "Horas-esforço e Horas reais",
+      "Horas-esforço e Horas-homem",
+      "Horas reais e Horas informais",
+      "Horas-homem e Horas informais"
+    ],
+    correctAnswer: 1,
+    explanation: "Horas ideais (também chamadas de horas-esforço ou horas-homem) representam o tempo que uma tarefa levaria sem interrupções. É diferente de horas reais que incluem interrupções.",
+    domain: "Processo",
+    difficulty: "medium"
+  },
+
+  // PROCESSO - KANBAN & LEAN (61-80)
+  {
+    id: 61,
+    question: "No Kanban, o conceito de WIP (Work in Progress) Limit serve para:",
+    options: [
+      "Limitar o número de pessoas na equipe",
+      "Limitar a quantidade de trabalho simultâneo em cada etapa do fluxo",
+      "Limitar o orçamento do projeto",
+      "Limitar o tempo das reuniões"
+    ],
+    correctAnswer: 1,
+    explanation: "O WIP Limit é um conceito central do Kanban que limita a quantidade de trabalho em andamento em cada coluna do quadro, reduzindo multitasking e aumentando o foco e fluxo.",
+    domain: "Processo",
+    difficulty: "medium"
+  },
+  {
+    id: 62,
+    question: "Os 7 desperdícios do Lean (Muda) incluem todos, EXCETO:",
+    options: [
+      "Espera e Transporte",
+      "Superprodução e Defeitos",
+      "Movimentação desnecessária",
+      "Comunicação excessiva"
+    ],
+    correctAnswer: 3,
+    explanation: "Os 7 desperdícios do Lean são: Superprodução, Espera, Transporte, Processamento excessivo, Inventário, Movimentação e Defeitos. Comunicação excessiva não faz parte dos 7 Mudas tradicionais.",
+    domain: "Processo",
+    difficulty: "hard"
+  },
+  {
+    id: 63,
+    question: "O conceito japonês 'Kaizen' significa:",
+    options: [
+      "Perfeição absoluta",
+      "Melhoria contínua através de pequenas mudanças incrementais",
+      "Produção em massa",
+      "Controle de qualidade rígido"
+    ],
+    correctAnswer: 1,
+    explanation: "Kaizen significa 'melhoria contínua'. É a filosofia de fazer pequenas melhorias incrementais constantemente, envolvendo todos os níveis da organização.",
+    domain: "Processo",
+    difficulty: "medium"
+  },
+  {
+    id: 64,
+    question: "O termo 'Gemba' no Lean refere-se a:",
+    options: [
+      "Reunião de gerentes",
+      "O local onde o trabalho acontece, onde o valor é criado",
+      "Documento de qualidade",
+      "Relatório mensal"
+    ],
+    correctAnswer: 1,
+    explanation: "Gemba significa 'o lugar real' - onde o trabalho acontece. A prática de 'Gemba Walk' envolve líderes irem ao local de trabalho para observar, entender e identificar melhorias.",
+    domain: "Processo",
+    difficulty: "medium"
+  },
+  {
+    id: 65,
+    question: "JIT (Just in Time) é um conceito que visa:",
+    options: [
+      "Manter grandes estoques para segurança",
+      "Produzir e entregar apenas o necessário, quando necessário",
+      "Acelerar todas as entregas",
+      "Aumentar a capacidade de produção"
+    ],
+    correctAnswer: 1,
+    explanation: "JIT é uma metodologia que visa produzir apenas o que é necessário, quando é necessário e na quantidade necessária, reduzindo desperdício e custos de inventário.",
+    domain: "Processo",
+    difficulty: "medium"
+  },
+  {
+    id: 66,
+    question: "O conceito de 'Lead Time' no Kanban representa:",
+    options: [
+      "Tempo que o líder passa em reuniões",
+      "Tempo total desde o pedido até a entrega ao cliente",
+      "Tempo de uma reunião diária",
+      "Tempo para aprovar um documento"
+    ],
+    correctAnswer: 1,
+    explanation: "Lead Time é o tempo total desde que um item de trabalho entra no sistema (pedido) até ser entregue ao cliente. É uma métrica crucial para medir eficiência do fluxo.",
+    domain: "Processo",
+    difficulty: "medium"
+  },
+  {
+    id: 67,
+    question: "O conceito de 'Cycle Time' difere do Lead Time porque:",
+    options: [
+      "São a mesma coisa",
+      "Cycle Time mede apenas o tempo de trabalho ativo, não o tempo de espera",
+      "Cycle Time é sempre maior que Lead Time",
+      "Cycle Time inclui tempo do cliente"
+    ],
+    correctAnswer: 1,
+    explanation: "Cycle Time mede o tempo desde que o trabalho começa até ser completado (trabalho ativo). Lead Time inclui também o tempo de espera na fila antes do trabalho começar.",
+    domain: "Processo",
+    difficulty: "hard"
+  },
+  {
+    id: 68,
+    question: "Os 3 Ms do Lean são:",
+    options: [
+      "Money, Management, Marketing",
+      "Muda (Desperdício), Mura (Desigualdade), Muri (Sobrecarga)",
+      "Mission, Method, Measurement",
+      "Man, Machine, Material"
+    ],
+    correctAnswer: 1,
+    explanation: "Os 3 Ms são: Muda (desperdício), Mura (desigualdade/variação) e Muri (sobrecarga). Eliminar os três é essencial para um fluxo de trabalho eficiente.",
+    domain: "Processo",
+    difficulty: "hard"
+  },
+  {
+    id: 69,
+    question: "O que significa 'Jidoka' no contexto Lean?",
+    options: [
+      "Automação com toque humano - parar quando há problema",
+      "Velocidade máxima de produção",
+      "Redução de custos a qualquer custo",
+      "Terceirização de processos"
+    ],
+    correctAnswer: 0,
+    explanation: "Jidoka é 'automação com toque humano'. Significa que máquinas ou processos param automaticamente quando detectam um problema, permitindo correção imediata e prevenindo defeitos.",
+    domain: "Processo",
+    difficulty: "hard"
+  },
+  {
+    id: 70,
+    question: "No quadro Kanban, um 'swimlane' (raia) é usado para:",
+    options: [
+      "Indicar prioridade por cores",
+      "Separar diferentes tipos de trabalho ou equipes horizontalmente",
+      "Mostrar o tempo de cada tarefa",
+      "Indicar quem está de férias"
+    ],
+    correctAnswer: 1,
+    explanation: "Swimlanes são linhas horizontais no quadro Kanban que separam diferentes tipos de trabalho, equipes, projetos ou classes de serviço, facilitando visualização e gestão.",
+    domain: "Processo",
+    difficulty: "medium"
+  },
+
+  // ABORDAGEM DE DESENVOLVIMENTO (81-100)
+  {
+    id: 71,
     question: "Qual é a principal diferença entre abordagem preditiva e adaptativa?",
     options: [
       "Não há diferença",
@@ -729,2110 +1072,1823 @@ export const pmpQuestions: PMPQuestion[] = [
     difficulty: "easy"
   },
   {
-    id: 52,
-    question: "O ciclo de vida de um projeto tipicamente inclui:",
-    options: [
-      "Apenas execução",
-      "Início, organização e preparação, execução do trabalho, encerramento",
-      "Apenas planejamento e encerramento",
-      "Somente controle de qualidade"
-    ],
-    correctAnswer: 1,
-    explanation: "O ciclo de vida abrange desde a iniciação até o encerramento, passando por preparação e execução.",
-    domain: "Abordagem de Desenvolvimento",
-    difficulty: "easy"
-  },
-  {
-    id: 53,
-    question: "Quando é mais apropriado usar uma abordagem preditiva (waterfall)?",
-    options: [
-      "Quando requisitos mudam frequentemente",
-      "Quando requisitos são bem definidos e estáveis desde o início",
-      "Sempre que houver software",
-      "Em projetos muito pequenos apenas"
-    ],
-    correctAnswer: 1,
-    explanation: "Abordagens preditivas são ideais quando requisitos são claros e improváveis de mudar significativamente.",
-    domain: "Abordagem de Desenvolvimento",
-    difficulty: "medium"
-  },
-  {
-    id: 54,
-    question: "Em projetos de construção de plataformas de petróleo, qual abordagem é mais comum?",
-    options: [
-      "Puramente ágil",
-      "Preditiva com elementos de controle rígido devido a segurança e regulamentos",
-      "Sem planejamento formal",
-      "Apenas iterativa"
-    ],
-    correctAnswer: 1,
-    explanation: "Projetos de construção industrial geralmente usam abordagens preditivas devido a requisitos regulatórios e de segurança.",
-    domain: "Abordagem de Desenvolvimento",
-    difficulty: "medium"
-  },
-  {
-    id: 55,
-    question: "O que significa 'cadência de entrega'?",
-    options: [
-      "Velocidade de digitação",
-      "Frequência ou ritmo com que entregas são produzidas",
-      "Número de membros da equipe",
-      "Duração total do projeto"
-    ],
-    correctAnswer: 1,
-    explanation: "Cadência de entrega refere-se à frequência com que valor é entregue aos stakeholders.",
-    domain: "Abordagem de Desenvolvimento",
-    difficulty: "easy"
-  },
-  {
-    id: 56,
-    question: "Em uma abordagem iterativa, o projeto:",
-    options: [
-      "Não tem fases",
-      "Repete ciclos de trabalho, refinando o produto progressivamente",
-      "Entrega tudo no final",
-      "Nunca muda o escopo"
-    ],
-    correctAnswer: 1,
-    explanation: "Abordagens iterativas refinam o produto através de ciclos repetidos de desenvolvimento e feedback.",
-    domain: "Abordagem de Desenvolvimento",
-    difficulty: "medium"
-  },
-  {
-    id: 57,
-    question: "Uma abordagem incremental entrega:",
-    options: [
-      "Tudo de uma vez no final",
-      "Partes funcionais do produto ao longo do tempo",
-      "Apenas documentação",
-      "Protótipos não funcionais"
-    ],
-    correctAnswer: 1,
-    explanation: "Entregas incrementais fornecem partes funcionais do produto em intervalos regulares.",
-    domain: "Abordagem de Desenvolvimento",
-    difficulty: "easy"
-  },
-  {
-    id: 58,
-    question: "O que é uma 'phase gate' (porta de fase)?",
-    options: [
-      "Uma barreira física no escritório",
-      "Ponto de decisão onde o projeto é avaliado antes de prosseguir para a próxima fase",
-      "Uma técnica de programação",
-      "Um tipo de contrato"
-    ],
-    correctAnswer: 1,
-    explanation: "Phase gates são pontos de revisão onde a continuação do projeto é decidida com base em critérios específicos.",
-    domain: "Abordagem de Desenvolvimento",
-    difficulty: "medium"
-  },
-  {
-    id: 59,
-    question: "A NASA frequentemente usa qual tipo de ciclo de vida para missões espaciais críticas?",
-    options: [
-      "Puramente ágil",
-      "Preditivo com revisões rigorosas em cada fase (como o NASA NPR 7120.5)",
-      "Sem estrutura formal",
-      "Apenas Scrum"
-    ],
-    correctAnswer: 1,
-    explanation: "A NASA usa ciclos de vida preditivos com revisões formais rigorosas devido à natureza crítica das missões.",
-    domain: "Abordagem de Desenvolvimento",
-    difficulty: "medium"
-  },
-  {
-    id: 60,
-    question: "O que é 'tailoring' (adaptação) da abordagem de desenvolvimento?",
-    options: [
-      "Copiar exatamente de outro projeto",
-      "Ajustar a abordagem, processos e práticas para o contexto específico do projeto",
-      "Seguir rigidamente um padrão",
-      "Eliminar todo planejamento"
-    ],
-    correctAnswer: 1,
-    explanation: "Tailoring envolve adaptar metodologias e práticas para melhor atender às necessidades específicas do projeto.",
-    domain: "Abordagem de Desenvolvimento",
-    difficulty: "medium"
-  },
-  {
-    id: 61,
-    question: "Em projetos híbridos, elementos preditivos e ágeis são:",
-    options: [
-      "Mantidos separados",
-      "Combinados para aproveitar os benefícios de cada abordagem",
-      "Usados alternadamente",
-      "Conflitantes e incompatíveis"
-    ],
-    correctAnswer: 1,
-    explanation: "Abordagens híbridas combinam elementos preditivos e ágeis conforme as necessidades de diferentes partes do projeto.",
-    domain: "Abordagem de Desenvolvimento",
-    difficulty: "medium"
-  },
-  {
-    id: 62,
-    question: "O conceito de MVP (Minimum Viable Product) vem de qual contexto?",
-    options: [
-      "Construção civil tradicional",
-      "Metodologias Lean e Ágeis para validação rápida de hipóteses",
-      "Projetos militares",
-      "Indústria farmacêutica"
-    ],
-    correctAnswer: 1,
-    explanation: "MVP é um conceito Lean/Ágil que visa criar a versão mais simples que valida hipóteses com usuários reais.",
-    domain: "Abordagem de Desenvolvimento",
-    difficulty: "medium"
-  },
-  {
-    id: 63,
-    question: "Qual fator NÃO influencia a escolha da abordagem de desenvolvimento?",
-    options: [
-      "Estabilidade dos requisitos",
-      "Cultura organizacional",
-      "Preferência pessoal do gerente de projeto apenas",
-      "Complexidade técnica"
-    ],
-    correctAnswer: 2,
-    explanation: "A escolha da abordagem deve ser baseada em fatores objetivos do projeto, não apenas preferência pessoal.",
-    domain: "Abordagem de Desenvolvimento",
-    difficulty: "medium"
-  },
-  {
-    id: 64,
-    question: "Um 'sprint' em Scrum é:",
-    options: [
-      "Uma corrida física da equipe",
-      "Um período fixo (tipicamente 2-4 semanas) onde trabalho é completado",
-      "O projeto inteiro",
-      "Uma reunião diária"
-    ],
-    correctAnswer: 1,
-    explanation: "Sprint é uma iteração time-boxed onde a equipe entrega incrementos de valor ao produto.",
-    domain: "Abordagem de Desenvolvimento",
-    difficulty: "easy"
-  },
-  {
-    id: 65,
-    question: "Em projetos de exploração offshore no Brasil, a fase de 'Front-End Loading' (FEL) serve para:",
-    options: [
-      "Acelerar a construção",
-      "Definir e refinar escopo, estimativas e riscos antes de grandes investimentos",
-      "Treinar a equipe",
-      "Negociar contratos apenas"
-    ],
-    correctAnswer: 1,
-    explanation: "FEL é usado na indústria de óleo e gás para maturar o projeto e reduzir incertezas antes de comprometer investimentos.",
-    domain: "Abordagem de Desenvolvimento",
-    difficulty: "hard"
-  },
-  {
-    id: 66,
-    question: "O ciclo de vida do produto difere do ciclo de vida do projeto porque:",
-    options: [
-      "São a mesma coisa",
-      "O ciclo do produto continua após o projeto, incluindo operação e desativação",
-      "O ciclo do produto é mais curto",
-      "Apenas projetos têm ciclos de vida"
-    ],
-    correctAnswer: 1,
-    explanation: "O ciclo de vida do produto inclui operação, manutenção e eventual desativação, estendendo-se além do projeto.",
-    domain: "Abordagem de Desenvolvimento",
-    difficulty: "medium"
-  },
-  {
-    id: 67,
-    question: "Rolling Wave Planning significa:",
-    options: [
-      "Planejar tudo no início",
-      "Planejar em detalhes o trabalho próximo e em alto nível o trabalho futuro",
-      "Não planejar nada",
-      "Replanejar apenas quando há problemas"
-    ],
-    correctAnswer: 1,
-    explanation: "Rolling Wave Planning elabora progressivamente os detalhes à medida que mais informações se tornam disponíveis.",
-    domain: "Abordagem de Desenvolvimento",
-    difficulty: "medium"
-  },
-  {
-    id: 68,
-    question: "Um projeto Kanban visualiza o trabalho usando:",
-    options: [
-      "Planilhas de Excel apenas",
-      "Quadros com colunas representando estágios do fluxo de trabalho",
-      "Gráficos de Gantt",
-      "Documentos de texto"
-    ],
-    correctAnswer: 1,
-    explanation: "Kanban usa quadros visuais com colunas para mostrar o fluxo de trabalho e limitar trabalho em progresso.",
-    domain: "Abordagem de Desenvolvimento",
-    difficulty: "easy"
-  },
-  {
-    id: 69,
-    question: "O que são 'work packages' em uma WBS?",
-    options: [
-      "Pacotes de software",
-      "Os níveis mais baixos da WBS, representando trabalho que pode ser estimado e gerenciado",
-      "Contratos de trabalho",
-      "Reuniões da equipe"
-    ],
-    correctAnswer: 1,
-    explanation: "Work packages são os componentes mais baixos da WBS, suficientemente detalhados para serem atribuídos e gerenciados.",
-    domain: "Abordagem de Desenvolvimento",
-    difficulty: "medium"
-  },
-  {
-    id: 70,
-    question: "Em um projeto de satélite, 'Critical Design Review' (CDR) é um exemplo de:",
-    options: [
-      "Reunião informal",
-      "Phase gate formal para avaliar maturidade do design antes de fabricação",
-      "Treinamento da equipe",
-      "Teste de software"
-    ],
-    correctAnswer: 1,
-    explanation: "CDR é uma revisão formal que avalia se o design está maduro para prosseguir para fabricação.",
-    domain: "Abordagem de Desenvolvimento",
-    difficulty: "hard"
-  },
-  {
-    id: 71,
-    question: "A principal vantagem de entregas incrementais é:",
-    options: [
-      "Mais burocracia",
-      "Feedback antecipado dos stakeholders e realização de valor mais cedo",
-      "Menos trabalho total",
-      "Evitar testes"
-    ],
-    correctAnswer: 1,
-    explanation: "Entregas incrementais permitem validação antecipada e ajustes baseados em feedback real dos usuários.",
-    domain: "Abordagem de Desenvolvimento",
-    difficulty: "easy"
-  },
-  {
     id: 72,
-    question: "O que é 'Definition of Done' em metodologias ágeis?",
+    question: "Sua organização tem sucesso com projetos cascata. O projeto atual tem alta probabilidade de mudança, baixa criticidade e potencial para entrega incremental, mas a equipe tem pouca experiência ágil. Qual o melhor curso de ação?",
     options: [
-      "Data de término do projeto",
-      "Critérios acordados que um item de trabalho deve atender para ser considerado completo",
-      "Aprovação do cliente",
-      "Pagamento final"
+      "Permitir que a equipe selecione a abordagem",
+      "Usar cascata, pois a equipe será resistente a mudanças",
+      "Usar ágil, pois a natureza do projeto determina",
+      "Começar com modelo preditivo e introduzir práticas ágeis gradualmente"
     ],
-    correctAnswer: 1,
-    explanation: "Definition of Done são critérios claros e acordados pela equipe para considerar trabalho como concluído.",
+    correctAnswer: 3,
+    explanation: "Quando a natureza do projeto sugere ágil mas a equipe não tem experiência, a abordagem híbrida é ideal: começar preditivo e introduzir práticas ágeis gradualmente para construir capacidade.",
     domain: "Abordagem de Desenvolvimento",
-    difficulty: "easy"
+    difficulty: "hard"
   },
   {
     id: 73,
-    question: "Em projetos de construção industrial em Angola, a abordagem EPC (Engineering, Procurement, Construction) representa:",
+    question: "José e Maria estão construindo uma casa. Decidiram iniciar a obra primeiro e decidir sobre design de interiores depois. Que técnica estão usando?",
     options: [
-      "Uma metodologia ágil",
-      "Um modelo de ciclo de vida preditivo com fases distintas de engenharia, aquisições e construção",
-      "Um tipo de contrato apenas",
-      "Gerenciamento de riscos"
+      "Rolling Wave Planning",
+      "Fast Tracking",
+      "Crashing",
+      "Decomposição"
     ],
-    correctAnswer: 1,
-    explanation: "EPC é uma abordagem de ciclo de vida comum em projetos industriais, com fases sequenciais bem definidas.",
+    correctAnswer: 0,
+    explanation: "Rolling Wave Planning é a técnica de planejar em detalhes o trabalho próximo e deixar o trabalho futuro em alto nível, detalhando progressivamente à medida que mais informações ficam disponíveis.",
     domain: "Abordagem de Desenvolvimento",
     difficulty: "medium"
   },
   {
     id: 74,
-    question: "Por que projetos de software frequentemente usam abordagens ágeis?",
+    question: "Um projeto usará abordagem adaptativa para planos e produto, mas iniciação e encerramento serão tradicionais. O GP decide usar radiadores de informação. Por quê?",
     options: [
-      "Porque é moda",
-      "Requisitos evoluem, feedback rápido é possível e custo de mudança é relativamente baixo",
-      "Porque não precisam de planejamento",
-      "Porque são sempre pequenos"
+      "Para informar stakeholders sobre a retrospectiva",
+      "Para comunicar progresso, problemas, melhoria contínua e gerenciar expectativas",
+      "Para compartilhar informações com fornecedores",
+      "Para documentar lições aprendidas"
     ],
     correctAnswer: 1,
-    explanation: "Software se adapta bem ao ágil por sua natureza evolutiva, capacidade de iteração rápida e flexibilidade para mudanças.",
+    explanation: "Radiadores de informação são displays visuais (quadros, gráficos) que comunicam status do projeto de forma passiva. São usados para transparência, comunicação de progresso e gestão de expectativas.",
     domain: "Abordagem de Desenvolvimento",
     difficulty: "medium"
   },
   {
     id: 75,
-    question: "O que é 'time-boxing'?",
+    question: "O que caracteriza um projeto verdadeiro? Qual dos exemplos é um projeto?",
     options: [
-      "Encaixotar relógios",
-      "Alocar período fixo de tempo para uma atividade, após o qual ela para independentemente de estar completa",
-      "Guardar tempo para emergências",
-      "Trabalhar horas extras"
+      "Salvar uma espécie ameaçada de rinoceronte da extinção",
+      "Limpeza semanal do parque local",
+      "Produção mensal de 1.000 pares de sapatos",
+      "Preparar macarrão toda segunda-feira"
     ],
-    correctAnswer: 1,
-    explanation: "Time-boxing limita a duração de atividades para promover foco e evitar escopo expansivo.",
+    correctAnswer: 0,
+    explanation: "Um projeto é temporário, único e cria resultado exclusivo. Salvar uma espécie é um esforço único com fim definido. Os outros são operações rotineiras/contínuas.",
     domain: "Abordagem de Desenvolvimento",
     difficulty: "easy"
   },
-
-  // PLANNING (76-100)
   {
     id: 76,
-    question: "O planejamento progressivo (elaboração progressiva) significa:",
+    question: "Quando você sugeriu usar abordagem ágil em uma organização avessa ao risco, perguntaram como o gerenciamento de riscos seria conduzido. Qual a resposta correta?",
     options: [
-      "Não planejar",
-      "Detalhar o plano gradualmente à medida que mais informações se tornam disponíveis",
-      "Planejar tudo no início",
-      "Planejar apenas quando há problemas"
+      "O gerente de projeto será o único proprietário de riscos",
+      "Apenas o patrocinador conduz análise de riscos",
+      "A equipe analisa riscos em todas as reuniões de planejamento, focando em análise qualitativa",
+      "Riscos são ignorados em projetos ágeis"
     ],
-    correctAnswer: 1,
-    explanation: "Elaboração progressiva refina e detalha planos conforme o projeto avança e mais informações surgem.",
-    domain: "Planejamento",
-    difficulty: "easy"
+    correctAnswer: 2,
+    explanation: "Em ágil, riscos são monitorados continuamente pela equipe em reuniões de planejamento e stand-ups. O foco é em análise qualitativa e resposta rápida através de iterações curtas.",
+    domain: "Abordagem de Desenvolvimento",
+    difficulty: "hard"
   },
   {
     id: 77,
-    question: "Uma WBS (Work Breakdown Structure) decompõe o escopo do projeto em:",
+    question: "Uma organização está transicionando para ágil e precisa de relatórios de conformidade para auditores. Como atender essa necessidade em ambiente híbrido?",
     options: [
-      "Departamentos da empresa",
-      "Componentes hierárquicos e gerenciáveis de trabalho",
-      "Apenas atividades de software",
-      "Apenas marcos"
+      "Trabalhar com auditores para agilizar o processo",
+      "Designar um membro da equipe para relatórios",
+      "Transferir responsabilidade para o departamento jurídico",
+      "Evitar agilidade, não é adequada para ambiente regulatório"
     ],
-    correctAnswer: 1,
-    explanation: "A WBS organiza o trabalho do projeto em componentes hierárquicos para facilitar planejamento e controle.",
-    domain: "Planejamento",
-    difficulty: "easy"
+    correctAnswer: 0,
+    explanation: "A melhor abordagem é colaborar com os auditores para adaptar os relatórios ao formato ágil, mantendo transparência e conformidade. Ágil pode funcionar em ambientes regulatórios com adaptações.",
+    domain: "Abordagem de Desenvolvimento",
+    difficulty: "hard"
   },
   {
     id: 78,
-    question: "O caminho crítico em um cronograma é:",
+    question: "Você é responsável por três projetos: dois similares e um diferente. Qual é seu papel?",
     options: [
-      "O caminho mais curto",
-      "A sequência mais longa de atividades que determina a duração mínima do projeto",
-      "Atividades opcionais",
-      "Atividades de menor risco"
+      "Coordenador do projeto",
+      "Gerente de projeto",
+      "Gerente de programa",
+      "Gerente de portfólio"
     ],
-    correctAnswer: 1,
-    explanation: "O caminho crítico determina a duração mínima do projeto; atrasos nele atrasam o projeto todo.",
-    domain: "Planejamento",
+    correctAnswer: 3,
+    explanation: "Um Gerente de Portfólio gerencia uma coleção de projetos e programas que podem ou não ser relacionados. Se os projetos fossem relacionados com benefícios comuns, seria Gerente de Programa.",
+    domain: "Ambiente Corporativo",
     difficulty: "medium"
   },
+
+  // AMBIENTE CORPORATIVO (79-100)
   {
     id: 79,
-    question: "Estimativa de três pontos usa valores:",
+    question: "Fatores Ambientais da Empresa (EEFs) incluem:",
     options: [
-      "Apenas o mais provável",
-      "Otimista, pessimista e mais provável para calcular uma estimativa ponderada",
-      "Apenas máximo e mínimo",
-      "Valores históricos apenas"
+      "Apenas políticas internas",
+      "Condições internas e externas que influenciam o projeto mas estão fora do controle da equipe",
+      "Apenas lições aprendidas",
+      "Apenas processos organizacionais"
     ],
     correctAnswer: 1,
-    explanation: "A técnica de três pontos considera cenários otimista, pessimista e mais provável para maior precisão.",
-    domain: "Planejamento",
+    explanation: "EEFs são condições que cercam e influenciam o projeto. Podem ser internas (cultura, estrutura) ou externas (regulamentos, mercado) e geralmente não estão sob controle da equipe.",
+    domain: "Ambiente Corporativo",
     difficulty: "medium"
   },
   {
     id: 80,
-    question: "Fast tracking em cronograma significa:",
+    question: "Ativos de Processos Organizacionais (OPAs) incluem:",
     options: [
-      "Cancelar atividades",
-      "Executar atividades em paralelo que normalmente seriam sequenciais",
-      "Adicionar recursos",
-      "Reduzir qualidade"
+      "Apenas equipamentos físicos",
+      "Processos, políticas, procedimentos e bases de conhecimento da organização",
+      "Apenas fatores externos",
+      "Apenas orçamento do projeto"
     ],
     correctAnswer: 1,
-    explanation: "Fast tracking sobrepõe atividades sequenciais para comprimir o cronograma, aumentando riscos.",
-    domain: "Planejamento",
+    explanation: "OPAs são artefatos, práticas e conhecimentos de qualquer organização que podem ser usados no projeto. Incluem políticas, templates, lições aprendidas e bases de conhecimento.",
+    domain: "Ambiente Corporativo",
     difficulty: "medium"
   },
   {
     id: 81,
-    question: "Crashing em um projeto envolve:",
+    question: "O PMO (Project Management Office) pode ser dos seguintes tipos, EXCETO:",
     options: [
-      "Fazer o projeto falhar",
-      "Adicionar recursos para encurtar atividades do caminho crítico",
-      "Cancelar o projeto",
-      "Remover recursos"
+      "PMO de Suporte (consultivo)",
+      "PMO Controlador (conformidade)",
+      "PMO Diretivo (gerencia projetos diretamente)",
+      "PMO Financeiro (apenas orçamento)"
     ],
-    correctAnswer: 1,
-    explanation: "Crashing adiciona recursos a atividades críticas para reduzir duração, geralmente aumentando custos.",
-    domain: "Planejamento",
-    difficulty: "medium"
+    correctAnswer: 3,
+    explanation: "Os três tipos de PMO são: Suporte (consultivo), Controlador (exige conformidade) e Diretivo (assume controle direto). Não existe classificação de 'PMO Financeiro'.",
+    domain: "Ambiente Corporativo",
+    difficulty: "hard"
   },
   {
     id: 82,
-    question: "O orçamento do projeto tipicamente inclui:",
+    question: "Governança corporativa se refere a:",
     options: [
-      "Apenas custos de mão de obra",
-      "Custos diretos, indiretos, contingências e reservas gerenciais",
-      "Apenas custos de materiais",
-      "Custos de marketing"
+      "Apenas controle financeiro",
+      "Sistema pelo qual organizações são dirigidas, monitoradas e incentivadas",
+      "Apenas recursos humanos",
+      "Apenas tecnologia da informação"
     ],
     correctAnswer: 1,
-    explanation: "O orçamento completo inclui todos os custos mais reservas para riscos conhecidos e desconhecidos.",
-    domain: "Planejamento",
+    explanation: "Governança corporativa envolve o sistema de regras, práticas e processos pelos quais uma empresa é dirigida e controlada, balanceando interesses de stakeholders.",
+    domain: "Ambiente Corporativo",
     difficulty: "medium"
   },
   {
     id: 83,
-    question: "Em um projeto de perfuração offshore, 'contingency' se refere a:",
+    question: "Compliance em projetos significa:",
     options: [
-      "Lucro extra",
-      "Reserva para riscos identificados e quantificados",
-      "Custos fixos",
-      "Penalidades contratuais"
+      "Fazer tudo que o cliente quer",
+      "Conformidade com leis, regulamentos, políticas e padrões aplicáveis",
+      "Apenas seguir cronograma",
+      "Apenas controlar custos"
     ],
     correctAnswer: 1,
-    explanation: "Contingência é a reserva financeira alocada para responder a riscos identificados do projeto.",
-    domain: "Planejamento",
-    difficulty: "medium"
+    explanation: "Compliance é a adesão a leis, regulamentos, políticas internas e padrões externos que se aplicam ao projeto e à organização.",
+    domain: "Ambiente Corporativo",
+    difficulty: "easy"
   },
   {
     id: 84,
-    question: "A técnica de estimativa paramétrica usa:",
+    question: "Durante a fase de iniciação, você percebe que requisitos regulatórios não foram considerados no contrato. Cumpri-los exigirá mais tempo e custo. O que fazer?",
     options: [
-      "Opinião de especialistas apenas",
-      "Relações estatísticas entre dados históricos e variáveis do projeto",
-      "Custos de projetos similares sem ajuste",
-      "Valores arbitrários"
+      "Sua primeira ação é divulgar a descoberta para stakeholders e solicitar seus pontos de vista",
+      "Escrever imediatamente uma notificação de mudança de escopo",
+      "Esperar e reunir mais informações ao longo do projeto",
+      "Contatar o órgão regulador para soluções alternativas"
     ],
-    correctAnswer: 1,
-    explanation: "Estimativa paramétrica aplica modelos estatísticos baseados em dados históricos e parâmetros do projeto atual.",
-    domain: "Planejamento",
+    correctAnswer: 0,
+    explanation: "Em questões éticas e de compliance, a transparência imediata é essencial. A primeira ação é informar stakeholders sobre a descoberta e suas implicações para decisão conjunta.",
+    domain: "Ambiente Corporativo",
     difficulty: "hard"
   },
   {
     id: 85,
-    question: "Um marco (milestone) em um cronograma representa:",
+    question: "O Comitê de Controle de Mudanças (CCB) tem cinco membros com opiniões divergentes. Qual o melhor curso de ação?",
     options: [
-      "Uma atividade longa",
-      "Um evento significativo com duração zero que marca conclusão de fase ou entrega",
-      "Um recurso humano",
-      "Um custo"
+      "Tentar chegar a um consenso",
+      "Convocar votação e deixar a maioria decidir",
+      "Deixar o membro mais experiente decidir",
+      "Deixar o diretor decidir"
     ],
-    correctAnswer: 1,
-    explanation: "Marcos são pontos de referência com duração zero que indicam conquistas importantes do projeto.",
-    domain: "Planejamento",
-    difficulty: "easy"
+    correctAnswer: 0,
+    explanation: "O consenso é sempre a primeira opção preferida em tomada de decisão de grupo, pois garante que todas as perspectivas foram consideradas e há comprometimento coletivo.",
+    domain: "Ambiente Corporativo",
+    difficulty: "medium"
   },
   {
     id: 86,
-    question: "O plano de gerenciamento de riscos define:",
+    question: "Você foi autorizado pelo CCB para revisar todas as solicitações de mudança. Um mês depois, recebeu três solicitações: do patrocinador, de um stakeholder de baixo poder, e de um membro sênior da equipe. Quem NÃO pode enviar solicitação de mudança?",
     options: [
-      "Todos os riscos do projeto",
-      "Como as atividades de gerenciamento de riscos serão conduzidas",
-      "Apenas riscos negativos",
-      "Custos do projeto"
+      "O patrocinador, pois é membro do CCB",
+      "O stakeholder de baixo poder",
+      "O membro sênior da equipe",
+      "Todos podem enviar solicitação de mudança"
     ],
-    correctAnswer: 1,
-    explanation: "O plano define a abordagem, papéis, ferramentas e processos para gerenciar riscos do projeto.",
-    domain: "Planejamento",
-    difficulty: "easy"
+    correctAnswer: 3,
+    explanation: "Qualquer pessoa pode submeter uma solicitação de mudança. Ser membro do CCB, ter baixo poder ou fazer parte da equipe não impede de solicitar mudanças. A decisão de aprovar cabe ao CCB.",
+    domain: "Ambiente Corporativo",
+    difficulty: "medium"
   },
+
+  // PLANEJAMENTO (87-110)
   {
     id: 87,
-    question: "Na análise qualitativa de riscos, riscos são priorizados por:",
+    question: "Você está na fase de planejamento e tem experiência anterior com drones militares. Sua técnica de estimativa é:",
     options: [
-      "Custo exato de impacto",
-      "Probabilidade de ocorrência e impacto potencial no projeto",
-      "Ordem alfabética",
-      "Data de identificação"
+      "Estimativa de três pontos",
+      "Estimativa análoga",
+      "Estimativa bottom-up",
+      "Estimativa paramétrica"
     ],
     correctAnswer: 1,
-    explanation: "Análise qualitativa prioriza riscos avaliando sua probabilidade e magnitude do impacto potencial.",
+    explanation: "Estimativa análoga usa experiência de projetos anteriores similares como base para estimar o projeto atual. É rápida mas menos precisa que técnicas detalhadas.",
     domain: "Planejamento",
-    difficulty: "easy"
+    difficulty: "medium"
   },
   {
     id: 88,
-    question: "O que é uma 'baseline' de projeto?",
+    question: "Você está cético sobre o modelo de negócios de uma startup e foi solicitado a fazer planejamento de recursos. Você deve usar informações históricas?",
     options: [
-      "A primeira estimativa feita",
-      "Versão aprovada do plano usada como referência para medir variações",
-      "A última versão do plano",
-      "Um documento informal"
+      "Não, cada projeto é único",
+      "Não, informações históricas não se aplicam a projetos inovadores",
+      "Sim, informações históricas podem fornecer comparações com projetos similares",
+      "Sim, estimativas precisas não podem ser feitas sem dados históricos"
     ],
-    correctAnswer: 1,
-    explanation: "A baseline é a versão aprovada e congelada do plano contra a qual o desempenho é medido.",
+    correctAnswer: 2,
+    explanation: "Informações históricas sempre podem fornecer insights úteis, mesmo para projetos inovadores. São uma base de comparação, não uma garantia de precisão.",
+    domain: "Planejamento",
+    difficulty: "medium"
+  },
+  {
+    id: 89,
+    question: "A equipe examinou a variação em relação à linha de base do escopo. O GP precisa saber se a variação está melhorando ou se deteriorando. O que fazer?",
+    options: [
+      "Realizar análise de variância",
+      "Realizar análise de produto",
+      "Concluir análise de rede do cronograma",
+      "Realizar análise de tendência"
+    ],
+    correctAnswer: 3,
+    explanation: "Análise de tendência examina o desempenho ao longo do tempo para determinar se está melhorando ou deteriorando. Análise de variância apenas compara real vs planejado em um ponto.",
+    domain: "Planejamento",
+    difficulty: "medium"
+  },
+  {
+    id: 90,
+    question: "Depois de definir requisitos de alto nível, a equipe ágil e o PO começaram a escrever features do produto. Como priorizar o backlog?",
+    options: [
+      "Valor dos itens",
+      "Complexidade dos itens",
+      "Tamanho dos itens",
+      "Risco associado aos itens"
+    ],
+    correctAnswer: 0,
+    explanation: "O backlog deve ser priorizado principalmente por valor de negócio. O objetivo é entregar primeiro o que traz mais valor ao cliente e ao negócio.",
     domain: "Planejamento",
     difficulty: "easy"
   },
   {
-    id: 89,
-    question: "Em projetos da NASA, a 'Management Reserve' é usada para:",
+    id: 91,
+    question: "Sua organização está deliberando entre dois projetos com mesmo período de retorno. O Projeto A tem TIR menor que B. Qual escolher?",
     options: [
-      "Bônus da gerência",
-      "Cobrir riscos desconhecidos ou 'unknown unknowns' autorizados pelo gerente",
-      "Custos de marketing",
-      "Salários da equipe"
+      "Projeto A",
+      "Projeto B",
+      "Não há diferença",
+      "As informações não são suficientes"
     ],
     correctAnswer: 1,
-    explanation: "Management Reserve cobre riscos imprevistos e só pode ser usada com autorização da gerência sênior.",
+    explanation: "Com mesmo período de retorno (payback), a TIR (Taxa Interna de Retorno) maior indica melhor retorno sobre investimento. Projeto B com TIR maior é preferível.",
     domain: "Planejamento",
     difficulty: "hard"
   },
   {
-    id: 90,
-    question: "O método do diagrama de precedência (PDM) é usado para:",
-    options: [
-      "Calcular custos",
-      "Criar diagramas de rede que mostram dependências entre atividades",
-      "Gerenciar recursos humanos",
-      "Comunicar com stakeholders"
-    ],
-    correctAnswer: 1,
-    explanation: "PDM cria diagramas de rede mostrando atividades em nós e relações de dependência entre elas.",
-    domain: "Planejamento",
-    difficulty: "medium"
-  },
-  {
-    id: 91,
-    question: "Float (folga) em um cronograma representa:",
-    options: [
-      "Tempo extra obrigatório",
-      "Tempo que uma atividade pode atrasar sem afetar o projeto ou atividades sucessoras",
-      "Férias da equipe",
-      "Horas extras"
-    ],
-    correctAnswer: 1,
-    explanation: "Float é a flexibilidade de tempo disponível para atividades não-críticas antes de afetar o cronograma.",
-    domain: "Planejamento",
-    difficulty: "medium"
-  },
-  {
     id: 92,
-    question: "Resource leveling pode resultar em:",
+    question: "Você está gerenciando uma feira do livro e identificou riscos de baixa prioridade no início do planejamento. O que fazer?",
     options: [
-      "Redução do cronograma",
-      "Extensão do cronograma para evitar sobre-alocação de recursos",
-      "Aumento do orçamento sempre",
-      "Redução da equipe"
+      "Ignorá-los, pois a ocorrência é baixa",
+      "Adicionar ao registro de riscos e continuar monitorando",
+      "Transferir imediatamente para terceiros",
+      "Criar reservas de contingência para todos"
     ],
     correctAnswer: 1,
-    explanation: "Resource leveling redistribui trabalho para equilibrar a carga de recursos, frequentemente estendendo o cronograma.",
+    explanation: "Mesmo riscos de baixa prioridade devem ser documentados no registro de riscos e monitorados, pois podem mudar ao longo do projeto.",
     domain: "Planejamento",
-    difficulty: "medium"
+    difficulty: "easy"
   },
   {
     id: 93,
-    question: "Um plano de comunicação define:",
+    question: "Você identificou um risco de taxas alfandegárias de US$10.000 com 70% de probabilidade. O que representa os US$7.000?",
     options: [
-      "Apenas e-mails a serem enviados",
-      "Quem recebe que informação, quando, como e com qual frequência",
-      "O software de e-mail a usar",
-      "Apenas reuniões formais"
+      "Impacto do risco",
+      "Valor presente",
+      "Valor Monetário Esperado (EMV)",
+      "Reserva de contingência"
     ],
-    correctAnswer: 1,
-    explanation: "O plano de comunicação especifica necessidades de informação dos stakeholders e como serão atendidas.",
-    domain: "Planejamento",
-    difficulty: "easy"
-  },
-  {
-    id: 94,
-    question: "Em contratos de projetos offshore, 'lump sum' significa:",
-    options: [
-      "Pagamento por hora",
-      "Preço fixo total para o escopo definido",
-      "Custo mais margem",
-      "Pagamento variável"
-    ],
-    correctAnswer: 1,
-    explanation: "Contratos lump sum têm preço fixo para um escopo definido, transferindo risco de custo para o fornecedor.",
+    correctAnswer: 2,
+    explanation: "EMV (Valor Monetário Esperado) = Probabilidade × Impacto. Neste caso: 70% × $10.000 = $7.000. É usado para quantificar riscos em termos financeiros.",
     domain: "Planejamento",
     difficulty: "medium"
   },
   {
-    id: 95,
-    question: "O propósito do plano de gerenciamento de aquisições é:",
+    id: 94,
+    question: "Charles está fazendo estudo de eficiência: investimento inicial R$50.000, receita R$15.000 no primeiro ano, custo operacional R$5.000 e fiscal R$5.000. Qual o retorno sobre capital investido?",
     options: [
-      "Listar todos os fornecedores possíveis",
-      "Definir como aquisições serão planejadas, executadas e controladas",
-      "Negociar preços",
-      "Avaliar qualidade apenas"
+      "10%",
+      "15%",
+      "20%",
+      "30%"
     ],
-    correctAnswer: 1,
-    explanation: "O plano define a abordagem para identificar, selecionar e gerenciar fornecedores e contratos.",
+    correctAnswer: 0,
+    explanation: "Retorno = (Receita - Custos) / Investimento = (15.000 - 5.000 - 5.000) / 50.000 = 5.000 / 50.000 = 10%",
     domain: "Planejamento",
-    difficulty: "easy"
+    difficulty: "hard"
+  },
+
+  // TRABALHO DO PROJETO (95-120)
+  {
+    id: 95,
+    question: "Depois de verificar internamente o produto, você o enviou ao cliente que questionou se atende aos requisitos. O que fazer?",
+    options: [
+      "Confirmar teste interno e encerrar formalmente",
+      "Realizar controle de qualidade e usar contingência para correções",
+      "Colaborar com cliente para obter assinatura de aprovação",
+      "Enviar engenheiro ao local para verificar requisitos"
+    ],
+    correctAnswer: 2,
+    explanation: "A validação pelo cliente é essencial para encerramento. Trabalhar junto com o cliente para verificar conformidade e obter aceitação formal é o procedimento correto.",
+    domain: "Trabalho do Projeto",
+    difficulty: "medium"
   },
   {
     id: 96,
-    question: "Estimativa análoga usa:",
+    question: "Seu projeto de carro solar está quase completo quando você recebe solicitação de mudança APROVADA para substituir componente defeituoso das baterias. O que fazer?",
     options: [
-      "Dados de projetos similares anteriores como base para estimar o atual",
-      "Simulação de Monte Carlo",
-      "Apenas opinião de especialistas",
-      "Fórmulas matemáticas complexas"
+      "Registrar no registro de problemas",
+      "Reunir-se com CCB para discutir",
+      "Reparar o componente",
+      "Substituir o componente defeituoso"
     ],
-    correctAnswer: 0,
-    explanation: "Estimativa análoga baseia-se em informações de projetos similares anteriores, ajustando para diferenças.",
-    domain: "Planejamento",
+    correctAnswer: 3,
+    explanation: "Com uma mudança já APROVADA pelo CCB, a ação é implementá-la. A solicitação era para SUBSTITUIR o componente, então essa é a ação correta.",
+    domain: "Trabalho do Projeto",
     difficulty: "easy"
   },
   {
     id: 97,
-    question: "O que deve ser considerado ao planejar recursos humanos para um projeto internacional?",
+    question: "Linda está liderando projeto de console de jogos. Ao testar, descobriu que um botão não funciona. Enviou solicitação de mudança para substituir o botão, que foi aprovada. Esta representa:",
     options: [
-      "Apenas disponibilidade",
-      "Disponibilidade, competências, cultura, fuso horário e questões legais trabalhistas",
-      "Apenas custo",
-      "Somente experiência técnica"
+      "Ação corretiva",
+      "Ação preventiva",
+      "Reparo de defeito",
+      "Atualização de linha de base"
     ],
-    correctAnswer: 1,
-    explanation: "Projetos internacionais exigem consideração de múltiplos fatores além da simples disponibilidade.",
-    domain: "Planejamento",
+    correctAnswer: 2,
+    explanation: "Reparo de defeito é a correção de um componente ou resultado que não está conforme os requisitos. A substituição do botão defeituoso é um reparo de defeito.",
+    domain: "Trabalho do Projeto",
     difficulty: "medium"
   },
   {
     id: 98,
-    question: "Um diagrama de Gantt mostra:",
+    question: "Sua organização enfatiza melhoria contínua e faz reuniões após cada ponto de verificação. Em qual reunião você discute por que as coisas deram errado?",
     options: [
-      "Custos por atividade",
-      "Atividades ao longo do tempo em formato de barras horizontais",
-      "Apenas marcos",
-      "Estrutura organizacional"
+      "Retrospectiva, Lições Aprendidas, e Post-mortem",
+      "Reunião de status",
+      "Reunião de kickoff",
+      "Daily stand-up"
     ],
-    correctAnswer: 1,
-    explanation: "Diagramas de Gantt visualizam cronogramas com barras representando atividades ao longo do tempo.",
-    domain: "Planejamento",
+    correctAnswer: 0,
+    explanation: "Retrospectivas (ágil), Lições Aprendidas (preditivo) e Post-mortem são reuniões focadas em analisar o que funcionou, o que não funcionou e como melhorar.",
+    domain: "Trabalho do Projeto",
     difficulty: "easy"
   },
   {
     id: 99,
-    question: "Estratégias de resposta a riscos negativos incluem:",
+    question: "Durante conferência de licitantes, um fornecedor notou requisito ausente na RFQ. Você explicou o requisito por 15 minutos. Quando as propostas chegaram, apenas um fornecedor o incluiu. O que fazer?",
     options: [
-      "Aumentar, compartilhar, explorar, aceitar",
-      "Evitar, mitigar, transferir, aceitar",
-      "Apenas ignorar",
-      "Apenas aceitar"
+      "Manter o fornecedor que notou o requisito ausente",
+      "Manter o fornecedor que incluiu o requisito na resposta",
+      "Estender o prazo para mais propostas",
+      "Enviar RFQ ajustada a todos e dar oportunidade de reenviar"
     ],
-    correctAnswer: 1,
-    explanation: "Riscos negativos podem ser evitados, mitigados, transferidos ou aceitos, dependendo da análise.",
-    domain: "Planejamento",
-    difficulty: "medium"
+    correctAnswer: 3,
+    explanation: "Para garantir competição justa e igualdade, todos os fornecedores devem receber as mesmas informações formalmente. Uma RFQ corrigida deve ser enviada a todos com prazo para reenviar propostas.",
+    domain: "Trabalho do Projeto",
+    difficulty: "hard"
   },
   {
     id: 100,
-    question: "Integração em planejamento significa:",
+    question: "Ana usa abordagem híbrida para atualização de software. Para entendimento comum entre stakeholders, ela deve definir requisitos através de:",
     options: [
-      "Usar muitos sistemas de software",
-      "Coordenar e alinhar todos os planos subsidiários em um plano coeso",
-      "Separar áreas de conhecimento",
-      "Evitar sobreposições"
+      "Questionário para todas as partes interessadas",
+      "Reunião individual com cada stakeholder",
+      "Workshop de requisitos para desenvolver histórias de usuário",
+      "Pesquisa com usuários atuais do software"
     ],
-    correctAnswer: 1,
-    explanation: "Integração garante que todos os aspectos do plano trabalhem juntos de forma coordenada e consistente.",
-    domain: "Planejamento",
-    difficulty: "easy"
+    correctAnswer: 2,
+    explanation: "Workshops de requisitos com todos os stakeholders juntos promovem entendimento comum, resolvem diferenças e criam alinhamento. Histórias de usuário capturam necessidades de forma colaborativa.",
+    domain: "Trabalho do Projeto",
+    difficulty: "medium"
   },
 
-  // PROJECT WORK (101-125)
+  // LIDERANÇA E INTELIGÊNCIA EMOCIONAL (101-120)
   {
     id: 101,
-    question: "Dirigir e gerenciar o trabalho do projeto envolve:",
+    question: "Uma característica da 'Zona Verde' de liderança é:",
     options: [
-      "Apenas aprovar despesas",
-      "Liderar e executar o trabalho conforme o plano, gerenciando recursos e comunicação",
-      "Delegar toda responsabilidade",
-      "Apenas criar relatórios"
+      "Culpar os outros pelas circunstâncias",
+      "Buscar soluções em vez de culpados",
+      "Sentir-se ameaçado constantemente",
+      "Enxergar conflito como batalha a vencer"
     ],
     correctAnswer: 1,
-    explanation: "Gerenciar o trabalho inclui liderar a equipe, executar atividades e coordenar recursos conforme planejado.",
-    domain: "Trabalho do Projeto",
+    explanation: "A Zona Verde representa comportamentos de liderança positivos: buscar soluções, ser aberto a feedback, assumir responsabilidade, colaborar e promover ambiente de confiança.",
+    domain: "Liderança",
     difficulty: "easy"
   },
   {
     id: 102,
-    question: "Em um projeto de construção offshore, 'work permits' são exemplos de:",
+    question: "Um comportamento da 'Zona Vermelha' de liderança é:",
     options: [
-      "Documentos opcionais",
-      "Controles de segurança formais necessários antes de executar trabalhos específicos",
-      "Contratos com fornecedores",
-      "Relatórios de progresso"
+      "Aceitar responsabilidade pelas consequências",
+      "Ser aberto ao feedback",
+      "Responder de forma defensiva",
+      "Buscar excelência em vez de vitória"
     ],
-    correctAnswer: 1,
-    explanation: "Work permits são controles de segurança obrigatórios em ambientes de alto risco como plataformas offshore.",
-    domain: "Trabalho do Projeto",
-    difficulty: "medium"
+    correctAnswer: 2,
+    explanation: "A Zona Vermelha representa comportamentos negativos: defensividade, culpar outros, inflexibilidade, sentir-se ameaçado, usar vergonha e acusações, e ver conflito como batalha.",
+    domain: "Liderança",
+    difficulty: "easy"
   },
   {
     id: 103,
-    question: "O gerenciamento de conhecimento do projeto visa:",
+    question: "Um líder com alta inteligência emocional consegue:",
     options: [
-      "Manter informações secretas",
-      "Capturar, compartilhar e aplicar conhecimento para melhorar resultados atuais e futuros",
-      "Criar muitos documentos",
-      "Treinar apenas novos membros"
+      "Ignorar emoções para focar em resultados",
+      "Identificar emoções, acalmar-se quando inquieto e definir metas de longo prazo",
+      "Evitar conversas difíceis",
+      "Julgar rapidamente os outros"
     ],
     correctAnswer: 1,
-    explanation: "Gerenciamento de conhecimento assegura que lições e expertise sejam capturadas e reutilizadas.",
-    domain: "Trabalho do Projeto",
+    explanation: "Inteligência emocional inclui: identificar próprias emoções, autorregulação, empatia, definir metas, persistir apesar de obstáculos e construir relacionamentos.",
+    domain: "Liderança",
     difficulty: "medium"
   },
   {
     id: 104,
-    question: "Como lidar com impedimentos que afetam o trabalho da equipe?",
+    question: "Um líder servidor caracteriza-se por:",
     options: [
-      "Esperar que se resolvam sozinhos",
-      "Identificar, escalar quando necessário e resolver proativamente para manter o progresso",
-      "Ignorar até o final do projeto",
-      "Documentar apenas"
+      "Dar ordens detalhadas e controlar cada passo",
+      "Conhecer o perfil de cada liderado e buscar identificar suas necessidades",
+      "Priorizar seus próprios objetivos",
+      "Evitar contato próximo com a equipe"
     ],
     correctAnswer: 1,
-    explanation: "Impedimentos devem ser identificados e resolvidos rapidamente para não atrasar o trabalho da equipe.",
-    domain: "Trabalho do Projeto",
-    difficulty: "easy"
+    explanation: "Liderança servidora foca em servir os outros, conhecer suas necessidades, desenvolver pessoas, ouvir ativamente e criar ambiente de crescimento.",
+    domain: "Liderança",
+    difficulty: "medium"
   },
   {
     id: 105,
-    question: "O que é 'gold plating' em projetos?",
+    question: "Para desenvolver inteligência emocional, é importante:",
     options: [
-      "Usar materiais de ouro",
-      "Adicionar funcionalidades não solicitadas além do escopo aprovado",
-      "Premiar a equipe",
-      "Pintar equipamentos de dourado"
+      "Evitar situações de pressão",
+      "Utilizar críticas para crescer e pensar claramente sob pressão",
+      "Sempre evitar conflitos",
+      "Ignorar o feedback dos outros"
     ],
     correctAnswer: 1,
-    explanation: "Gold plating é adicionar trabalho extra não solicitado, consumindo recursos sem agregar valor aprovado.",
-    domain: "Trabalho do Projeto",
+    explanation: "Desenvolver IE envolve usar críticas construtivamente, manter clareza sob pressão, reconhecer como seu comportamento afeta outros e ouvir sem julgar.",
+    domain: "Liderança",
     difficulty: "medium"
   },
   {
     id: 106,
-    question: "Reuniões diárias (daily standups) em projetos ágeis servem para:",
+    question: "Um líder na Zona Verde:",
     options: [
-      "Resolver problemas complexos detalhadamente",
-      "Sincronizar a equipe sobre progresso, planos e impedimentos rapidamente",
-      "Aprovar mudanças de escopo",
-      "Revisar código"
+      "É inflexível sobre seus interesses",
+      "Pode ser firme, mas não inflexível sobre seus interesses",
+      "Usa vergonha e culpa para motivar",
+      "Concentra-se apenas em ganhos de curto prazo"
     ],
     correctAnswer: 1,
-    explanation: "Daily standups são encontros curtos para sincronização rápida, não para resolver problemas detalhados.",
-    domain: "Trabalho do Projeto",
-    difficulty: "easy"
+    explanation: "A Zona Verde equilibra firmeza com flexibilidade. Um líder pode defender seus interesses sem ser rígido, buscando soluções mutuamente benéficas.",
+    domain: "Liderança",
+    difficulty: "medium"
   },
   {
     id: 107,
-    question: "Quality assurance difere de quality control porque:",
+    question: "Um líder com boa escuta ativa:",
     options: [
-      "São a mesma coisa",
-      "QA foca em processos para prevenir defeitos; QC inspeciona produtos para detectar defeitos",
-      "QA é mais barato",
-      "QC é feito apenas no final"
+      "Interrompe para mostrar que entendeu",
+      "Consegue ouvir sem julgar e tenta enxergar pela perspectiva dos outros",
+      "Foca em preparar sua resposta enquanto ouve",
+      "Muda de assunto quando não concorda"
     ],
     correctAnswer: 1,
-    explanation: "QA é proativo, focando em processos; QC é reativo, inspecionando resultados para encontrar problemas.",
-    domain: "Trabalho do Projeto",
-    difficulty: "medium"
+    explanation: "Escuta ativa envolve ouvir sem julgar, buscar entender a perspectiva do outro, demonstrar atenção genuína e estar presente na conversa.",
+    domain: "Liderança",
+    difficulty: "easy"
   },
   {
     id: 108,
-    question: "Em projetos da NASA, 'configuration management' assegura:",
+    question: "Um líder que reconhece como seu comportamento afeta os outros demonstra:",
     options: [
-      "Conforto da equipe",
-      "Rastreabilidade e controle de mudanças em produtos e documentação do projeto",
-      "Apenas backup de arquivos",
-      "Segurança física"
+      "Autoconsciência e consciência social",
+      "Fraqueza e indecisão",
+      "Foco excessivo nos outros",
+      "Falta de assertividade"
     ],
-    correctAnswer: 1,
-    explanation: "Configuration management controla versões e mudanças em produtos, garantindo integridade e rastreabilidade.",
-    domain: "Trabalho do Projeto",
-    difficulty: "hard"
+    correctAnswer: 0,
+    explanation: "Reconhecer o impacto do próprio comportamento é sinal de autoconsciência (entender a si mesmo) e consciência social (entender os outros) - componentes chave da IE.",
+    domain: "Liderança",
+    difficulty: "medium"
   },
+
+  // MÉTRICAS E INCERTEZAS (109-130)
   {
     id: 109,
-    question: "O que são 'lessons learned'?",
+    question: "O gráfico de burndown em um sprint mostra trabalho acumulando na área B. Isto indica que:",
     options: [
-      "Treinamentos formais",
-      "Conhecimento ganho durante o projeto sobre o que funcionou e o que precisa melhorar",
-      "Críticas à gerência",
-      "Relatórios de falhas apenas"
+      "A equipe está adiantada",
+      "A equipe está atrasada ou sofreu algum bloqueio nesse período",
+      "O projeto foi cancelado",
+      "O sprint foi estendido"
     ],
     correctAnswer: 1,
-    explanation: "Lessons learned documentam experiências e insights para beneficiar projetos atuais e futuros.",
-    domain: "Trabalho do Projeto",
-    difficulty: "easy"
-  },
-  {
-    id: 110,
-    question: "Em execução, solicitações de mudança devem ser:",
-    options: [
-      "Implementadas imediatamente",
-      "Documentadas, analisadas e submetidas ao processo de controle de mudanças",
-      "Ignoradas",
-      "Aprovadas apenas pelo gerente de projeto"
-    ],
-    correctAnswer: 1,
-    explanation: "Mudanças devem seguir um processo formal de avaliação e aprovação antes da implementação.",
-    domain: "Trabalho do Projeto",
-    difficulty: "easy"
-  },
-  {
-    id: 111,
-    question: "O WIP limit (Work in Progress limit) em Kanban serve para:",
-    options: [
-      "Aumentar o trabalho paralelo",
-      "Limitar o trabalho simultâneo para melhorar fluxo e identificar gargalos",
-      "Reduzir o tamanho da equipe",
-      "Aumentar prazos"
-    ],
-    correctAnswer: 1,
-    explanation: "Limites de WIP focam a equipe e revelam problemas no fluxo de trabalho mais rapidamente.",
-    domain: "Trabalho do Projeto",
+    explanation: "Um burndown que sobe ou fica plano indica trabalho não sendo completado como esperado. A área B com acumulação sugere atraso ou impedimento.",
+    domain: "Métricas e Incertezas",
     difficulty: "medium"
   },
   {
+    id: 110,
+    question: "A métrica 'Throughput' no Kanban mede:",
+    options: [
+      "Tempo total de um item no sistema",
+      "Quantidade de itens completados por unidade de tempo",
+      "Número de pessoas na equipe",
+      "Custo por tarefa"
+    ],
+    correctAnswer: 1,
+    explanation: "Throughput é a quantidade de itens de trabalho completados por período de tempo (dia, semana, sprint). É uma medida de produtividade e vazão do sistema.",
+    domain: "Métricas e Incertezas",
+    difficulty: "medium"
+  },
+  {
+    id: 111,
+    question: "Velocidade (Velocity) em Scrum representa:",
+    options: [
+      "Rapidez de digitação da equipe",
+      "Quantidade de pontos de história completados por sprint",
+      "Número de bugs encontrados",
+      "Custos por sprint"
+    ],
+    correctAnswer: 1,
+    explanation: "Velocity é a quantidade de pontos de história que uma equipe consegue completar em um sprint. É usada para prever capacidade futura e planejar releases.",
+    domain: "Métricas e Incertezas",
+    difficulty: "easy"
+  },
+  {
     id: 112,
-    question: "O que é uma 'retrospectiva' em metodologias ágeis?",
+    question: "O Diagrama de Fluxo Cumulativo (CFD) no Kanban mostra:",
     options: [
-      "Olhar para projetos antigos",
-      "Reunião regular onde a equipe reflete sobre como melhorar processos e colaboração",
-      "Revisão de código",
-      "Planejamento de sprint"
+      "Apenas tarefas concluídas",
+      "Acumulação de trabalho em cada estágio ao longo do tempo",
+      "Nomes dos membros da equipe",
+      "Apenas riscos identificados"
     ],
     correctAnswer: 1,
-    explanation: "Retrospectivas são momentos de reflexão para identificar melhorias contínuas no trabalho da equipe.",
-    domain: "Trabalho do Projeto",
-    difficulty: "easy"
-  },
-  {
-    id: 113,
-    question: "Burn-down charts mostram:",
-    options: [
-      "Custos acumulados",
-      "Trabalho restante ao longo do tempo, indicando progresso em direção à conclusão",
-      "Riscos identificados",
-      "Satisfação da equipe"
-    ],
-    correctAnswer: 1,
-    explanation: "Burn-down charts visualizam quanto trabalho resta, ajudando a prever se o objetivo será alcançado.",
-    domain: "Trabalho do Projeto",
-    difficulty: "easy"
-  },
-  {
-    id: 114,
-    question: "Em projetos offshore na Nigéria, 'MOC' (Management of Change) é crítico porque:",
-    options: [
-      "É exigido apenas por reguladores",
-      "Mudanças em ambientes de alto risco podem ter consequências graves de segurança",
-      "Reduz custos",
-      "Acelera o projeto"
-    ],
-    correctAnswer: 1,
-    explanation: "Em ambientes de alto risco, mudanças não controladas podem levar a acidentes graves ou fatalidades.",
-    domain: "Trabalho do Projeto",
+    explanation: "O CFD mostra a quantidade de trabalho em cada estágio do fluxo ao longo do tempo. Permite identificar gargalos, WIP crescente e problemas de fluxo.",
+    domain: "Métricas e Incertezas",
     difficulty: "hard"
   },
   {
-    id: 115,
-    question: "O que caracteriza um ambiente de trabalho colaborativo?",
+    id: 113,
+    question: "Análise de Monte Carlo é usada para:",
     options: [
-      "Competição interna intensa",
-      "Compartilhamento de informações, suporte mútuo e foco em objetivos comuns",
-      "Trabalho isolado",
-      "Hierarquia rígida"
+      "Calcular salários",
+      "Simular cenários e analisar probabilidades de resultados",
+      "Criar cronogramas manualmente",
+      "Avaliar desempenho individual"
     ],
     correctAnswer: 1,
-    explanation: "Colaboração envolve trabalho conjunto, compartilhamento de conhecimento e apoio entre membros da equipe.",
-    domain: "Trabalho do Projeto",
+    explanation: "Monte Carlo usa simulação estatística com múltiplos cenários para analisar riscos e prever probabilidades de atingir objetivos de custo, cronograma, etc.",
+    domain: "Métricas e Incertezas",
+    difficulty: "hard"
+  },
+
+  // ENTREGA (114-130)
+  {
+    id: 114,
+    question: "O conceito de 'Definition of Done' em Scrum define:",
+    options: [
+      "Quando o projeto inteiro termina",
+      "Os critérios que um incremento deve atender para ser considerado completo",
+      "A data de entrega final",
+      "O orçamento máximo"
+    ],
+    correctAnswer: 1,
+    explanation: "Definition of Done é um acordo da equipe sobre os critérios que cada incremento deve atender para ser considerado pronto (testado, documentado, revisado, etc.).",
+    domain: "Entrega",
     difficulty: "easy"
+  },
+  {
+    id: 115,
+    question: "Critérios de Aceitação diferem de Definition of Done porque:",
+    options: [
+      "São a mesma coisa",
+      "Critérios de Aceitação são específicos para cada história/item, DoD é para todos",
+      "DoD é mais detalhado",
+      "Critérios de Aceitação são opcionais"
+    ],
+    correctAnswer: 1,
+    explanation: "Critérios de Aceitação são condições específicas que uma história de usuário individual deve atender. DoD são critérios gerais que se aplicam a todo incremento.",
+    domain: "Entrega",
+    difficulty: "medium"
   },
   {
     id: 116,
-    question: "Gerenciamento de problemas (issue management) inclui:",
+    question: "Um 'Incremento' em Scrum é:",
     options: [
-      "Apenas documentar problemas",
-      "Identificar, registrar, analisar, resolver e acompanhar problemas até o fechamento",
-      "Ignorar problemas menores",
-      "Delegar todos os problemas"
+      "O aumento de orçamento",
+      "A soma de todos os itens do backlog completados durante o sprint mais incrementos anteriores",
+      "A quantidade de horas trabalhadas",
+      "O número de reuniões realizadas"
     ],
     correctAnswer: 1,
-    explanation: "Gerenciamento de problemas é um processo completo desde identificação até resolução e encerramento.",
-    domain: "Trabalho do Projeto",
-    difficulty: "easy"
+    explanation: "Incremento é a soma de todos os itens do Product Backlog completados durante a Sprint mais o valor de todos os incrementos anteriores. Deve ser utilizável e atender à DoD.",
+    domain: "Entrega",
+    difficulty: "medium"
   },
   {
     id: 117,
-    question: "O Product Owner em Scrum é responsável por:",
+    question: "O processo de validação do escopo serve para:",
     options: [
-      "Gerenciar o código",
-      "Maximizar o valor do produto através da gestão do backlog e priorização",
-      "Remover impedimentos",
-      "Facilitar reuniões apenas"
+      "Verificar qualidade técnica",
+      "Obter aceitação formal das entregas pelos stakeholders",
+      "Calcular custos finais",
+      "Definir novos requisitos"
     ],
     correctAnswer: 1,
-    explanation: "O Product Owner gerencia o backlog e prioriza itens para maximizar o valor entregue.",
-    domain: "Trabalho do Projeto",
+    explanation: "Validação do Escopo é o processo de formalizar a aceitação das entregas do projeto pelos stakeholders, obtendo sign-off de que o trabalho está conforme os requisitos.",
+    domain: "Entrega",
     difficulty: "medium"
   },
   {
     id: 118,
-    question: "Integração contínua (CI) em projetos de software significa:",
+    question: "Controle de Qualidade (QC) difere de Garantia de Qualidade (QA) porque:",
     options: [
-      "Reuniões constantes da equipe",
-      "Integrar e testar código frequentemente, tipicamente várias vezes ao dia",
-      "Trabalhar sem intervalos",
-      "Nunca parar o desenvolvimento"
+      "São idênticos",
+      "QC inspeciona entregas; QA audita processos",
+      "QA é mais barato",
+      "QC ocorre apenas no final"
     ],
     correctAnswer: 1,
-    explanation: "CI envolve integrar mudanças de código frequentemente com testes automatizados para detectar problemas cedo.",
-    domain: "Trabalho do Projeto",
+    explanation: "QC (Controle de Qualidade) verifica se os produtos atendem aos requisitos através de inspeções e testes. QA (Garantia de Qualidade) avalia se os processos estão sendo seguidos.",
+    domain: "Entrega",
     difficulty: "medium"
   },
   {
     id: 119,
-    question: "O que é uma 'decision log'?",
+    question: "O encerramento formal do projeto inclui:",
     options: [
-      "Diário pessoal do gerente",
-      "Registro de decisões importantes do projeto, incluindo justificativa e responsáveis",
-      "Lista de tarefas",
-      "Relatório financeiro"
+      "Apenas desligar sistemas",
+      "Documentação de lições aprendidas, liberação de recursos e aceitação formal",
+      "Apenas festa de encerramento",
+      "Apenas arquivamento de documentos"
     ],
     correctAnswer: 1,
-    explanation: "Decision log documenta decisões significativas para referência futura e rastreabilidade.",
-    domain: "Trabalho do Projeto",
+    explanation: "O encerramento formal inclui: obter aceitação final, documentar lições aprendidas, arquivar documentos, liberar recursos, celebrar e fechar contratos.",
+    domain: "Entrega",
     difficulty: "easy"
   },
   {
     id: 120,
-    question: "Em projetos de engenharia, 'punch list' refere-se a:",
+    question: "Em projetos ágeis, a Sprint Review serve para:",
     options: [
-      "Lista de punições",
-      "Lista de itens pendentes ou deficiências a corrigir antes da aceitação final",
-      "Lista de compras",
-      "Lista de participantes"
+      "Discutir processos da equipe",
+      "Apresentar o incremento aos stakeholders e obter feedback",
+      "Planejar a próxima sprint",
+      "Avaliar desempenho individual"
     ],
     correctAnswer: 1,
-    explanation: "Punch list documenta itens menores pendentes que precisam ser corrigidos para aceitação final.",
-    domain: "Trabalho do Projeto",
-    difficulty: "medium"
+    explanation: "A Sprint Review é uma reunião para inspecionar o Incremento e adaptar o Product Backlog. Stakeholders fornecem feedback sobre o que foi entregue.",
+    domain: "Entrega",
+    difficulty: "easy"
   },
+
+  // QUESTÕES ADICIONAIS DO PMBOK (121-200)
   {
     id: 121,
-    question: "Eficiência no trabalho do projeto pode ser medida por:",
+    question: "O princípio PMBOK 7 'Foco no Valor' significa:",
     options: [
-      "Número de e-mails enviados",
-      "Valor entregue em relação aos recursos consumidos",
-      "Horas trabalhadas apenas",
-      "Número de reuniões"
+      "Focar apenas em reduzir custos",
+      "Avaliar e entregar valor contínuo ao longo do projeto",
+      "Ignorar stakeholders menores",
+      "Priorizar velocidade sobre qualidade"
     ],
     correctAnswer: 1,
-    explanation: "Eficiência relaciona o valor ou resultado produzido com os recursos (tempo, custo) utilizados.",
-    domain: "Trabalho do Projeto",
+    explanation: "Foco no Valor significa continuamente avaliar e ajustar entregas para maximizar o valor entregue aos stakeholders e ao negócio.",
+    domain: "Stakeholders",
     difficulty: "medium"
   },
   {
     id: 122,
-    question: "Documentação do projeto deve ser:",
+    question: "O princípio 'Navegue na Complexidade' do PMBOK 7 orienta a:",
     options: [
-      "A mais extensa possível",
-      "Adequada às necessidades, nem excessiva nem insuficiente",
-      "Evitada ao máximo",
-      "Criada apenas no final"
+      "Evitar projetos complexos",
+      "Reconhecer, avaliar e responder à complexidade usando abordagens apropriadas",
+      "Simplificar tudo ao máximo",
+      "Ignorar interdependências"
     ],
     correctAnswer: 1,
-    explanation: "Documentação deve ser suficiente para atender necessidades sem criar overhead desnecessário.",
-    domain: "Trabalho do Projeto",
-    difficulty: "easy"
+    explanation: "Complexidade é inerente a projetos. O princípio orienta a reconhecê-la e usar técnicas apropriadas (iteração, prototipagem, etc.) para navegá-la.",
+    domain: "Abordagem de Desenvolvimento",
+    difficulty: "medium"
   },
   {
     id: 123,
-    question: "O que é 'technical debt' (dívida técnica)?",
+    question: "O princípio 'Otimize Respostas a Riscos' enfatiza:",
     options: [
-      "Empréstimo bancário para tecnologia",
-      "Consequências de escolher soluções rápidas em vez de melhores abordagens de longo prazo",
-      "Custo de equipamentos",
-      "Atraso em pagamentos a fornecedores"
+      "Eliminar todos os riscos",
+      "Avaliar continuamente riscos e maximizar impactos positivos enquanto minimiza negativos",
+      "Aceitar todos os riscos",
+      "Transferir todos os riscos"
     ],
     correctAnswer: 1,
-    explanation: "Dívida técnica é o custo futuro de refatoração devido a decisões que priorizaram velocidade sobre qualidade.",
-    domain: "Trabalho do Projeto",
+    explanation: "O princípio reconhece que riscos são inevitáveis e orienta a avaliar continuamente, responder apropriadamente e buscar oportunidades (riscos positivos).",
+    domain: "Métricas e Incertezas",
     difficulty: "medium"
   },
   {
     id: 124,
-    question: "Sprint Review em Scrum é focada em:",
+    question: "O princípio 'Incorpore Qualidade em Processos e Entregas' significa:",
     options: [
-      "Criticar a equipe",
-      "Demonstrar o incremento entregue e coletar feedback dos stakeholders",
-      "Planejar o próximo sprint",
-      "Resolver conflitos"
+      "Inspecionar qualidade apenas no final",
+      "Construir qualidade desde o início, não apenas inspecionar depois",
+      "Qualidade é responsabilidade apenas do QA",
+      "Aceitar alguns defeitos para ir mais rápido"
     ],
     correctAnswer: 1,
-    explanation: "Sprint Review demonstra o trabalho concluído e coleta feedback para adaptar o backlog.",
-    domain: "Trabalho do Projeto",
-    difficulty: "easy"
+    explanation: "Qualidade deve ser construída nos processos e produtos desde o início, não apenas verificada no final. Prevenção é mais eficaz que inspeção.",
+    domain: "Entrega",
+    difficulty: "medium"
   },
   {
     id: 125,
-    question: "Manter o foco da equipe é responsabilidade:",
+    question: "O princípio 'Habilite Mudanças para Alcançar a Visão' reconhece que:",
     options: [
-      "Apenas do gerente de projeto",
-      "Compartilhada entre líder e equipe, com proteção contra distrações externas",
-      "De cada indivíduo sozinho",
-      "Apenas do cliente"
+      "Mudanças devem ser evitadas sempre",
+      "Mudanças podem ser necessárias para alcançar os objetivos do projeto",
+      "Apenas o cliente pode solicitar mudanças",
+      "Mudanças não afetam o escopo"
     ],
     correctAnswer: 1,
-    explanation: "Manter foco é responsabilidade compartilhada, com o líder protegendo a equipe de interferências.",
+    explanation: "O princípio reconhece que mudanças são frequentemente necessárias para responder a novos insights, requisitos ou condições e alcançar valor.",
     domain: "Trabalho do Projeto",
-    difficulty: "easy"
+    difficulty: "medium"
   },
-
-  // DELIVERY (126-150)
   {
     id: 126,
-    question: "Valor no contexto de projetos é definido como:",
+    question: "O princípio 'Adapte com Base no Contexto' orienta a:",
     options: [
-      "Apenas lucro financeiro",
-      "Benefício ou importância de algo, que pode ser tangível ou intangível",
-      "Custo do projeto",
-      "Tamanho da equipe"
+      "Usar sempre a mesma metodologia",
+      "Personalizar a abordagem com base nas características únicas do projeto",
+      "Copiar projetos anteriores",
+      "Seguir rigidamente padrões"
     ],
     correctAnswer: 1,
-    explanation: "Valor inclui benefícios tangíveis e intangíveis que atendem necessidades de stakeholders.",
-    domain: "Entrega",
+    explanation: "Cada projeto é único. O princípio orienta a adaptar metodologias, processos e práticas às necessidades específicas do projeto e seu contexto.",
+    domain: "Abordagem de Desenvolvimento",
     difficulty: "easy"
   },
   {
     id: 127,
-    question: "O que é 'scope creep'?",
+    question: "O princípio 'Construa Qualidade nos Processos e Resultados' difere de controle de qualidade porque:",
     options: [
-      "Uma técnica de planejamento",
-      "Expansão descontrolada do escopo sem ajustes correspondentes em tempo, custo e recursos",
-      "Redução do escopo",
-      "Um tipo de risco técnico"
+      "São iguais",
+      "O princípio enfatiza prevenção e incorporação desde o início",
+      "QC é mais importante",
+      "O princípio ignora inspeção"
     ],
     correctAnswer: 1,
-    explanation: "Scope creep é a adição gradual e não controlada de requisitos que ameaça cronograma e orçamento.",
-    domain: "Entrega",
-    difficulty: "easy"
-  },
-  {
-    id: 128,
-    question: "Critérios de aceitação definem:",
-    options: [
-      "O preço do projeto",
-      "Condições específicas que um deliverable deve atender para ser aceito pelo stakeholder",
-      "A equipe do projeto",
-      "O cronograma de entregas"
-    ],
-    correctAnswer: 1,
-    explanation: "Critérios de aceitação especificam os requisitos que uma entrega deve cumprir para aprovação.",
-    domain: "Entrega",
-    difficulty: "easy"
-  },
-  {
-    id: 129,
-    question: "Qualidade em projetos significa:",
-    options: [
-      "O mais caro possível",
-      "Grau em que características inerentes atendem aos requisitos",
-      "Ausência total de defeitos",
-      "Aprovação do gerente"
-    ],
-    correctAnswer: 1,
-    explanation: "Qualidade é o grau em que as características de um produto atendem aos requisitos especificados.",
-    domain: "Entrega",
-    difficulty: "easy"
-  },
-  {
-    id: 130,
-    question: "Em um projeto de satélite da NASA, 'verification' e 'validation' diferem porque:",
-    options: [
-      "São a mesma coisa",
-      "Verification confirma que foi feito corretamente; validation confirma que foi feito o produto certo",
-      "Verification é mais importante",
-      "Validation é feita apenas no início"
-    ],
-    correctAnswer: 1,
-    explanation: "Verification pergunta 'construímos certo?'; Validation pergunta 'construímos a coisa certa?'.",
+    explanation: "O princípio vai além de inspeção (QC), enfatizando que qualidade deve ser incorporada em todos os processos desde o início (prevenção sobre detecção).",
     domain: "Entrega",
     difficulty: "hard"
   },
   {
-    id: 131,
-    question: "O custo da qualidade inclui:",
+    id: 128,
+    question: "O Domínio 'Ciclo de Vida' no PMBOK 7 aborda:",
     options: [
-      "Apenas custo de inspeção",
-      "Custos de conformidade (prevenção, avaliação) e não-conformidade (falhas internas e externas)",
-      "Apenas custo de retrabalho",
-      "Apenas materiais de alta qualidade"
+      "Apenas cronogramas",
+      "Fases do projeto desde início até encerramento e abordagens de desenvolvimento",
+      "Apenas contratações",
+      "Apenas recursos humanos"
     ],
     correctAnswer: 1,
-    explanation: "Custo da qualidade abrange investimentos em qualidade e custos resultantes de problemas de qualidade.",
-    domain: "Entrega",
+    explanation: "O domínio de Ciclo de Vida aborda como o projeto progride através de fases e qual abordagem (preditiva, adaptativa, híbrida) é mais apropriada.",
+    domain: "Abordagem de Desenvolvimento",
     difficulty: "medium"
   },
   {
-    id: 132,
-    question: "Em projetos de construção offshore, 'commissioning' refere-se a:",
+    id: 129,
+    question: "O Domínio 'Incerteza' no PMBOK 7 trata de:",
     options: [
-      "Contratação de equipe",
-      "Processo de testar e colocar sistemas em operação após construção",
-      "Pagamento de comissões",
-      "Encerramento administrativo"
+      "Apenas riscos negativos",
+      "Riscos, ambiguidade, complexidade e volatilidade",
+      "Apenas custos incertos",
+      "Apenas cronograma incerto"
     ],
     correctAnswer: 1,
-    explanation: "Commissioning verifica que sistemas instalados funcionam conforme projetado antes da operação.",
-    domain: "Entrega",
+    explanation: "O domínio de Incerteza aborda riscos (positivos e negativos), ambiguidade, complexidade e volatilidade que afetam projetos.",
+    domain: "Métricas e Incertezas",
+    difficulty: "medium"
+  },
+  {
+    id: 130,
+    question: "O Domínio 'Medição' no PMBOK 7 enfatiza:",
+    options: [
+      "Apenas medir horas trabalhadas",
+      "Avaliar desempenho do projeto e tomar ações baseadas em dados",
+      "Apenas medir custos",
+      "Evitar métricas para não sobrecarregar"
+    ],
+    correctAnswer: 1,
+    explanation: "O domínio de Medição enfatiza avaliar desempenho do projeto através de métricas relevantes e usar esses dados para tomada de decisão.",
+    domain: "Métricas e Incertezas",
+    difficulty: "easy"
+  },
+  {
+    id: 131,
+    question: "Em projetos da NASA, o conceito de 'Technical Readiness Level' (TRL) é usado para:",
+    options: [
+      "Avaliar custo de tecnologias",
+      "Medir a maturidade de uma tecnologia para uso em missões",
+      "Classificar astronautas",
+      "Definir cronogramas"
+    ],
+    correctAnswer: 1,
+    explanation: "TRL é uma escala de 1-9 usada pela NASA para avaliar a maturidade de tecnologias. Quanto maior o TRL, mais pronta a tecnologia está para uso operacional.",
+    domain: "Abordagem de Desenvolvimento",
+    difficulty: "hard"
+  },
+  {
+    id: 132,
+    question: "Em projetos de óleo e gás, FEED (Front-End Engineering Design) é:",
+    options: [
+      "Fase de operação",
+      "Fase de engenharia conceitual antes do investimento principal",
+      "Apenas documentação legal",
+      "Fase de descomissionamento"
+    ],
+    correctAnswer: 1,
+    explanation: "FEED é a fase de engenharia preliminar onde escopo, custos e cronograma são definidos antes de aprovar o investimento principal do projeto.",
+    domain: "Planejamento",
     difficulty: "hard"
   },
   {
     id: 133,
-    question: "Definition of Done em um projeto de software geralmente inclui:",
+    question: "O conceito de 'Lessons Learned' é importante porque:",
     options: [
-      "Apenas código escrito",
-      "Código desenvolvido, testado, revisado, documentado e pronto para deploy",
-      "Apenas aprovação do gerente",
-      "Estimativa de tempo"
+      "É requisito legal",
+      "Captura conhecimento para melhorar projetos futuros",
+      "Apenas para relatórios",
+      "É opcional em todos os projetos"
     ],
     correctAnswer: 1,
-    explanation: "DoD tipicamente abrange desenvolvimento, testes, revisão de código e documentação necessária.",
-    domain: "Entrega",
-    difficulty: "medium"
-  },
-  {
-    id: 134,
-    question: "Entrega incremental beneficia o projeto porque:",
-    options: [
-      "Aumenta os custos",
-      "Permite feedback antecipado, ajustes e realização de valor progressivo",
-      "Reduz a qualidade",
-      "Complica o planejamento"
-    ],
-    correctAnswer: 1,
-    explanation: "Entregas incrementais validam direção, permitem ajustes e entregam valor antes do final do projeto.",
-    domain: "Entrega",
+    explanation: "Lições aprendidas capturam experiências do projeto (positivas e negativas) para que projetos futuros possam se beneficiar e evitar repetir erros.",
+    domain: "Trabalho do Projeto",
     difficulty: "easy"
   },
   {
-    id: 135,
-    question: "O que é um 'deliverable'?",
+    id: 134,
+    question: "Um 'Information Radiator' em ágil é:",
     options: [
-      "Apenas o produto final",
-      "Qualquer produto, resultado ou capacidade única e verificável que deve ser produzido",
-      "Apenas documentos",
-      "O cronograma do projeto"
+      "Equipamento de comunicação",
+      "Display visual que mostra informações do projeto de forma passiva",
+      "Documento confidencial",
+      "Software de email"
     ],
     correctAnswer: 1,
-    explanation: "Deliverables são quaisquer saídas verificáveis, incluindo produtos, serviços e resultados.",
-    domain: "Entrega",
+    explanation: "Information Radiators são displays físicos ou digitais (quadros Kanban, burndown charts) que mostram status do projeto de forma visível e passiva a todos.",
+    domain: "Comunicação",
+    difficulty: "medium"
+  },
+  {
+    id: 135,
+    question: "O papel do Product Owner inclui:",
+    options: [
+      "Escrever código",
+      "Maximizar valor do produto e gerenciar o Product Backlog",
+      "Facilitar reuniões Scrum",
+      "Gerenciar recursos humanos"
+    ],
+    correctAnswer: 1,
+    explanation: "O Product Owner é responsável por maximizar o valor do produto através da gestão eficaz do Product Backlog, representando stakeholders e definindo prioridades.",
+    domain: "Processo",
     difficulty: "easy"
   },
   {
     id: 136,
-    question: "Em projetos de pré-sal no Brasil, 'FPSO' como deliverable final representa:",
+    question: "O papel do Scrum Master inclui:",
     options: [
-      "Um documento de projeto",
-      "Floating Production Storage and Offloading - uma unidade completa de produção",
-      "Um software de controle",
-      "Um relatório financeiro"
+      "Definir prioridades do backlog",
+      "Facilitar eventos Scrum e remover impedimentos",
+      "Aprovar férias da equipe",
+      "Decidir arquitetura técnica"
     ],
     correctAnswer: 1,
-    explanation: "FPSO é uma plataforma flutuante de produção, armazenamento e transferência - um deliverable complexo.",
-    domain: "Entrega",
-    difficulty: "hard"
-  },
-  {
-    id: 137,
-    question: "Testes de aceitação do usuário (UAT) são realizados:",
-    options: [
-      "Apenas pela equipe técnica",
-      "Por usuários finais ou representantes para verificar se o produto atende suas necessidades",
-      "Antes do desenvolvimento",
-      "Apenas em projetos de software"
-    ],
-    correctAnswer: 1,
-    explanation: "UAT envolve usuários reais validando que o produto atende seus requisitos e expectativas.",
-    domain: "Entrega",
+    explanation: "O Scrum Master é um líder servidor que ajuda a equipe a entender e aplicar Scrum, facilita eventos, remove impedimentos e protege a equipe de distrações.",
+    domain: "Processo",
     difficulty: "easy"
   },
   {
-    id: 138,
-    question: "O conceito de 'fitness for purpose' significa:",
+    id: 137,
+    question: "Em Scrum, 'Sprint Goal' é:",
     options: [
-      "Exercícios físicos no trabalho",
-      "O produto atende adequadamente ao uso pretendido",
-      "Estar em boa forma física",
-      "Ter equipamentos modernos"
+      "A lista completa de tarefas",
+      "O objetivo único que dá coerência ao sprint e direciona a equipe",
+      "O número de pontos a completar",
+      "A data de entrega"
     ],
     correctAnswer: 1,
-    explanation: "Fitness for purpose indica que o produto é adequado e apropriado para o propósito pretendido.",
-    domain: "Entrega",
+    explanation: "Sprint Goal é um objetivo coerente que fornece direção e propósito para a equipe durante o sprint. Ajuda a tomar decisões sobre o que priorizar.",
+    domain: "Processo",
+    difficulty: "medium"
+  },
+  {
+    id: 138,
+    question: "Product Backlog Refinement (Grooming) serve para:",
+    options: [
+      "Aprovar o sprint",
+      "Detalhar, estimar e ordenar itens do backlog antes do planejamento",
+      "Encerrar o projeto",
+      "Avaliar desempenho"
+    ],
+    correctAnswer: 1,
+    explanation: "Refinamento é a atividade contínua de adicionar detalhes, estimar e ordenar itens do Product Backlog para prepará-los para sprints futuros.",
+    domain: "Processo",
     difficulty: "medium"
   },
   {
     id: 139,
-    question: "Transição de entrega para operações deve incluir:",
+    question: "Planning Poker é uma técnica de:",
     options: [
-      "Apenas entregar o produto",
-      "Treinamento, documentação, suporte inicial e transferência formal de responsabilidade",
-      "Encerrar imediatamente o contato",
-      "Apenas celebração"
+      "Priorização de requisitos",
+      "Estimativa colaborativa usando consenso",
+      "Seleção de fornecedores",
+      "Avaliação de riscos"
     ],
     correctAnswer: 1,
-    explanation: "Uma boa transição assegura que operações estão preparados para assumir e operar a entrega.",
-    domain: "Entrega",
-    difficulty: "medium"
+    explanation: "Planning Poker é uma técnica de estimativa ágil onde membros da equipe estimam simultaneamente usando cartas, promovendo discussão e consenso.",
+    domain: "Planejamento",
+    difficulty: "easy"
   },
   {
     id: 140,
-    question: "Outcomes (resultados) diferem de outputs (saídas) porque:",
+    question: "User Story Map é uma técnica para:",
     options: [
-      "São a mesma coisa",
-      "Outcomes são os benefícios ou mudanças resultantes; outputs são os produtos entregues",
-      "Outputs são mais importantes",
-      "Outcomes não podem ser medidos"
+      "Desenhar arquitetura técnica",
+      "Visualizar funcionalidades organizadas por jornada do usuário",
+      "Calcular custos",
+      "Definir contratos"
     ],
     correctAnswer: 1,
-    explanation: "Outputs são as entregas tangíveis; outcomes são os benefícios ou impactos que elas geram.",
-    domain: "Entrega",
+    explanation: "User Story Mapping organiza histórias de usuário visualmente ao longo da jornada do usuário, ajudando a planejar releases e identificar gaps.",
+    domain: "Planejamento",
     difficulty: "medium"
   },
   {
     id: 141,
-    question: "Em projetos ágeis, 'potentially shippable increment' significa:",
+    question: "A técnica MoSCoW prioriza requisitos em:",
     options: [
-      "Produto que pode ser enviado pelo correio",
-      "Incremento que atende ao Definition of Done e pode ser liberado a qualquer momento",
-      "Apenas um protótipo",
-      "Documento de requisitos"
+      "Alto, Médio, Baixo",
+      "Must have, Should have, Could have, Won't have",
+      "1, 2, 3, 4",
+      "Urgente, Importante, Normal"
     ],
     correctAnswer: 1,
-    explanation: "Um incremento potencialmente entregável está pronto para produção, mesmo que não seja liberado imediatamente.",
-    domain: "Entrega",
+    explanation: "MoSCoW categoriza requisitos em: Must have (essenciais), Should have (importantes), Could have (desejáveis) e Won't have (excluídos desta entrega).",
+    domain: "Planejamento",
     difficulty: "medium"
   },
   {
     id: 142,
-    question: "Gerenciamento de defeitos inclui:",
+    question: "Em gestão de riscos, a estratégia 'Mitigar' significa:",
     options: [
-      "Esconder problemas",
-      "Identificar, documentar, priorizar, resolver e verificar correção de defeitos",
-      "Apenas contar defeitos",
-      "Demitir responsáveis"
+      "Ignorar o risco",
+      "Reduzir probabilidade ou impacto do risco",
+      "Transferir para terceiros",
+      "Aceitar o risco"
     ],
     correctAnswer: 1,
-    explanation: "Gerenciamento de defeitos é um processo estruturado desde identificação até verificação da correção.",
-    domain: "Entrega",
+    explanation: "Mitigação envolve tomar ações para reduzir a probabilidade de ocorrência do risco e/ou seu impacto caso ocorra.",
+    domain: "Métricas e Incertezas",
     difficulty: "easy"
   },
   {
     id: 143,
-    question: "O que significa entregar 'valor antecipado' ao cliente?",
+    question: "A estratégia de risco 'Transferir' tipicamente envolve:",
     options: [
-      "Terminar antes do prazo",
-      "Entregar funcionalidades de maior valor primeiro, mesmo que o projeto não esteja completo",
-      "Cobrar antecipadamente",
-      "Prometer mais do que pode entregar"
+      "Ignorar completamente",
+      "Passar a responsabilidade para terceiros (ex: seguro, contrato)",
+      "Aumentar a probabilidade",
+      "Aceitar sem ação"
     ],
     correctAnswer: 1,
-    explanation: "Valor antecipado significa priorizar e entregar primeiro os itens de maior importância para o cliente.",
-    domain: "Entrega",
+    explanation: "Transferência move a responsabilidade pelo risco para terceiros, geralmente através de seguros, garantias ou cláusulas contratuais.",
+    domain: "Métricas e Incertezas",
     difficulty: "easy"
   },
   {
     id: 144,
-    question: "Em projetos de missões espaciais, 'launch readiness review' é:",
+    question: "Riscos positivos (oportunidades) podem ser tratados com:",
     options: [
-      "Uma reunião informal",
-      "Avaliação formal que confirma que todos os sistemas estão prontos para lançamento",
-      "Revisão de custos",
-      "Treinamento de astronautas"
+      "Apenas evitar",
+      "Explorar, Compartilhar, Melhorar, Aceitar",
+      "Apenas transferir",
+      "Apenas ignorar"
     ],
     correctAnswer: 1,
-    explanation: "Launch readiness review é uma verificação crítica final antes de autorizar o lançamento de uma missão.",
-    domain: "Entrega",
-    difficulty: "hard"
-  },
-  {
-    id: 145,
-    question: "O papel da inspeção na entrega de qualidade é:",
-    options: [
-      "Criar mais trabalho",
-      "Identificar defeitos e não-conformidades antes que cheguem ao cliente",
-      "Substituir testes",
-      "Apenas documentar"
-    ],
-    correctAnswer: 1,
-    explanation: "Inspeções detectam problemas cedo, reduzindo o custo de correção e protegendo o cliente.",
-    domain: "Entrega",
-    difficulty: "easy"
-  },
-  {
-    id: 146,
-    question: "Requisitos não-funcionais incluem:",
-    options: [
-      "Apenas funcionalidades",
-      "Performance, segurança, usabilidade, confiabilidade e outras qualidades do sistema",
-      "Apenas design visual",
-      "Apenas requisitos de hardware"
-    ],
-    correctAnswer: 1,
-    explanation: "Requisitos não-funcionais definem atributos de qualidade e restrições do sistema.",
-    domain: "Entrega",
+    explanation: "Oportunidades podem ser exploradas (garantir), compartilhadas (parceiros), melhoradas (aumentar probabilidade) ou aceitas.",
+    domain: "Métricas e Incertezas",
     difficulty: "medium"
   },
   {
-    id: 147,
-    question: "Ao entregar um FPSO em Angola, a 'warranty period' (período de garantia) serve para:",
+    id: 145,
+    question: "O conceito de 'Reserva de Contingência' é:",
     options: [
-      "Estender indefinidamente as responsabilidades",
-      "Período onde fornecedor corrige defeitos descobertos após entrega sem custo adicional",
-      "Apenas questões legais",
-      "Marketing do projeto"
+      "Orçamento extra para novas funcionalidades",
+      "Fundos para riscos identificados e quantificados",
+      "Salário extra para a equipe",
+      "Fundo para festas"
     ],
     correctAnswer: 1,
-    explanation: "O período de garantia obriga o fornecedor a corrigir defeitos identificados após a entrega.",
-    domain: "Entrega",
+    explanation: "Reserva de contingência é alocada para cobrir riscos conhecidos que foram identificados e quantificados durante o planejamento de riscos.",
+    domain: "Métricas e Incertezas",
+    difficulty: "medium"
+  },
+  {
+    id: 146,
+    question: "Reserva de Gerenciamento difere de Contingência porque:",
+    options: [
+      "São iguais",
+      "Gerenciamento é para riscos desconhecidos (unknown unknowns)",
+      "Contingência é maior sempre",
+      "Gerenciamento é controlada pela equipe"
+    ],
+    correctAnswer: 1,
+    explanation: "Reserva de Gerenciamento cobre riscos desconhecidos (unknown unknowns), controlada pelo patrocinador. Contingência cobre riscos conhecidos, controlada pelo GP.",
+    domain: "Métricas e Incertezas",
+    difficulty: "hard"
+  },
+  {
+    id: 147,
+    question: "Earned Value Management (EVM) usa qual métrica para medir progresso físico?",
+    options: [
+      "PV (Planned Value)",
+      "EV (Earned Value)",
+      "AC (Actual Cost)",
+      "BAC (Budget at Completion)"
+    ],
+    correctAnswer: 1,
+    explanation: "EV (Earned Value/Valor Agregado) mede o trabalho realmente completado em termos do orçamento autorizado para esse trabalho.",
+    domain: "Métricas e Incertezas",
     difficulty: "medium"
   },
   {
     id: 148,
-    question: "Métricas de entrega podem incluir:",
+    question: "CPI (Cost Performance Index) menor que 1 indica:",
     options: [
-      "Apenas custos",
-      "Defeitos encontrados, satisfação do cliente, conformidade com requisitos, tempo de entrega",
-      "Apenas prazo",
-      "Número de reuniões"
+      "Projeto abaixo do orçamento",
+      "Projeto acima do orçamento (over budget)",
+      "Projeto no prazo",
+      "Projeto adiantado"
     ],
     correctAnswer: 1,
-    explanation: "Métricas de entrega abrangem qualidade, satisfação, conformidade e eficiência de entrega.",
-    domain: "Entrega",
-    difficulty: "easy"
+    explanation: "CPI = EV/AC. CPI < 1 significa que o custo real é maior que o valor agregado, indicando que o projeto está gastando mais do que planejado.",
+    domain: "Métricas e Incertezas",
+    difficulty: "medium"
   },
   {
     id: 149,
-    question: "O que é 'regression testing'?",
+    question: "SPI (Schedule Performance Index) maior que 1 indica:",
     options: [
-      "Testes de estresse da equipe",
-      "Reteste para garantir que mudanças não introduziram novos defeitos em funcionalidades existentes",
-      "Testes em ambientes antigos",
-      "Testes de regressão de cronograma"
+      "Projeto atrasado",
+      "Projeto adiantado em relação ao cronograma",
+      "Projeto acima do orçamento",
+      "Projeto cancelado"
     ],
     correctAnswer: 1,
-    explanation: "Testes de regressão verificam que alterações não quebraram funcionalidades que antes funcionavam.",
-    domain: "Entrega",
+    explanation: "SPI = EV/PV. SPI > 1 significa que o valor agregado é maior que o planejado, indicando que o projeto está adiantado.",
+    domain: "Métricas e Incertezas",
     difficulty: "medium"
   },
   {
     id: 150,
-    question: "Entrega contínua (Continuous Delivery) permite:",
+    question: "A técnica de entrevista para coleta de requisitos é melhor quando:",
     options: [
-      "Trabalho sem parar",
-      "Liberar software para produção de forma automatizada e frequente com baixo risco",
-      "Nunca parar de codificar",
-      "Eliminar testes"
+      "Há muitos stakeholders",
+      "É necessário obter informações detalhadas de especialistas específicos",
+      "O tempo é muito curto",
+      "Não há stakeholders disponíveis"
     ],
     correctAnswer: 1,
-    explanation: "Continuous Delivery automatiza o pipeline de entrega, permitindo releases frequentes e confiáveis.",
-    domain: "Entrega",
-    difficulty: "medium"
+    explanation: "Entrevistas são eficazes para obter informações detalhadas e profundas de stakeholders específicos, permitindo explorar tópicos em profundidade.",
+    domain: "Planejamento",
+    difficulty: "easy"
   },
-
-  // MEASUREMENT (151-175)
   {
     id: 151,
-    question: "Por que medir o desempenho do projeto?",
+    question: "Protótipos são úteis para:",
     options: [
-      "Para punir a equipe",
-      "Para entender progresso, identificar problemas cedo e tomar decisões informadas",
-      "Apenas para relatórios",
-      "Para satisfazer auditores"
+      "Apenas documentação final",
+      "Validar requisitos e obter feedback antes de construir o produto final",
+      "Substituir todos os testes",
+      "Apenas projetos pequenos"
     ],
     correctAnswer: 1,
-    explanation: "Medição fornece visibilidade do progresso e permite intervenções proativas quando necessário.",
-    domain: "Medição",
+    explanation: "Protótipos permitem que stakeholders visualizem e interajam com uma versão preliminar, validando requisitos e obtendo feedback valioso cedo.",
+    domain: "Planejamento",
     difficulty: "easy"
   },
   {
     id: 152,
-    question: "KPIs (Key Performance Indicators) devem ser:",
+    question: "A WBS (Work Breakdown Structure) organiza o trabalho do projeto em:",
     options: [
-      "O máximo possível",
-      "Relevantes, mensuráveis, alinhados aos objetivos e em quantidade gerenciável",
-      "Secretos",
-      "Definidos apenas no final"
+      "Ordem cronológica",
+      "Hierarquia de entregas decompostas em pacotes de trabalho",
+      "Ordem de importância",
+      "Categorias de custo"
     ],
     correctAnswer: 1,
-    explanation: "KPIs eficazes são focados, relevantes e ligados diretamente aos objetivos do projeto.",
-    domain: "Medição",
+    explanation: "A WBS decompõe o escopo total do projeto em componentes menores e mais gerenciáveis, organizados hierarquicamente por entregas.",
+    domain: "Planejamento",
     difficulty: "easy"
   },
   {
     id: 153,
-    question: "Earned Value Management (EVM) mede:",
+    question: "O Dicionário da WBS contém:",
     options: [
-      "Apenas custos reais",
-      "Desempenho integrando escopo, cronograma e custo em métricas comparativas",
-      "Apenas prazo",
-      "Satisfação da equipe"
+      "Apenas nomes dos pacotes",
+      "Descrições detalhadas de cada componente da WBS",
+      "Apenas custos",
+      "Apenas cronograma"
     ],
     correctAnswer: 1,
-    explanation: "EVM integra três dimensões críticas para avaliar desempenho de forma objetiva e comparável.",
-    domain: "Medição",
+    explanation: "O Dicionário da WBS fornece descrições detalhadas de cada pacote de trabalho, incluindo escopo, entregas, recursos, custos e critérios de aceitação.",
+    domain: "Planejamento",
     difficulty: "medium"
   },
   {
     id: 154,
-    question: "O que significa CPI (Cost Performance Index) menor que 1?",
+    question: "Critical Path Method (CPM) identifica:",
     options: [
-      "O projeto está abaixo do orçamento",
-      "O projeto está acima do orçamento - gastando mais do que o valor do trabalho realizado",
-      "O cronograma está atrasado",
-      "A qualidade está baixa"
+      "As tarefas mais caras",
+      "A sequência mais longa de atividades que determina a duração mínima do projeto",
+      "As tarefas mais fáceis",
+      "Os recursos mais importantes"
     ],
     correctAnswer: 1,
-    explanation: "CPI < 1 indica que o custo real excede o valor agregado, significando gastos acima do planejado.",
-    domain: "Medição",
+    explanation: "O caminho crítico é a sequência de atividades que determina a duração total do projeto. Qualquer atraso no caminho crítico atrasa o projeto.",
+    domain: "Planejamento",
     difficulty: "medium"
   },
   {
     id: 155,
-    question: "SPI (Schedule Performance Index) maior que 1 indica:",
+    question: "Float (ou Slack) representa:",
     options: [
-      "O projeto está atrasado",
-      "O projeto está adiantado em relação ao cronograma planejado",
-      "O orçamento foi excedido",
-      "A equipe está sobrecarregada"
+      "Tempo extra de trabalho",
+      "Tempo que uma atividade pode atrasar sem afetar o projeto",
+      "Custo adicional",
+      "Risco do projeto"
     ],
     correctAnswer: 1,
-    explanation: "SPI > 1 significa que mais trabalho foi realizado do que o planejado para o período.",
-    domain: "Medição",
+    explanation: "Float é a quantidade de tempo que uma atividade pode ser atrasada sem atrasar o projeto como um todo ou violar restrições.",
+    domain: "Planejamento",
     difficulty: "medium"
   },
   {
     id: 156,
-    question: "Variance Analysis em EVM compara:",
+    question: "Fast Tracking é uma técnica de compressão que:",
     options: [
-      "Diferentes projetos",
-      "Desempenho planejado versus real para identificar desvios",
-      "Membros da equipe",
-      "Fornecedores"
+      "Adiciona recursos para fazer mais rápido",
+      "Executa atividades em paralelo que normalmente seriam sequenciais",
+      "Reduz escopo",
+      "Aumenta orçamento"
     ],
     correctAnswer: 1,
-    explanation: "Análise de variação compara baseline com atual para identificar e entender diferenças de desempenho.",
-    domain: "Medição",
-    difficulty: "easy"
-  },
-  {
-    id: 157,
-    question: "Um dashboard de projeto eficaz deve:",
-    options: [
-      "Mostrar todos os dados disponíveis",
-      "Apresentar informações-chave de forma visual, clara e acionável",
-      "Ser atualizado anualmente",
-      "Conter apenas texto"
-    ],
-    correctAnswer: 1,
-    explanation: "Dashboards eficazes destacam métricas críticas de forma visual para facilitar decisões rápidas.",
-    domain: "Medição",
-    difficulty: "easy"
-  },
-  {
-    id: 158,
-    question: "Em projetos de exploração de petróleo, 'NPT' (Non-Productive Time) mede:",
-    options: [
-      "Tempo de férias",
-      "Tempo perdido que não contribui para o objetivo principal de perfuração",
-      "Tempo de manutenção preventiva",
-      "Horas extras"
-    ],
-    correctAnswer: 1,
-    explanation: "NPT é uma métrica crítica que mede tempo perdido por problemas, falhas ou esperas improdutivas.",
-    domain: "Medição",
-    difficulty: "hard"
-  },
-  {
-    id: 159,
-    question: "Forecasting em projetos usa dados atuais para:",
-    options: [
-      "Mudar o passado",
-      "Projetar resultados finais prováveis de custo e cronograma",
-      "Apenas documentar",
-      "Planejar próximos projetos"
-    ],
-    correctAnswer: 1,
-    explanation: "Forecasting projeta EAC (Estimate at Completion) baseado no desempenho atual para antecipar resultados.",
-    domain: "Medição",
+    explanation: "Fast Tracking executa atividades em paralelo, mas aumenta riscos. Não adiciona custos diretamente mas pode causar retrabalho.",
+    domain: "Planejamento",
     difficulty: "medium"
   },
   {
-    id: 160,
-    question: "Velocity em Scrum mede:",
+    id: 157,
+    question: "Crashing é uma técnica que:",
     options: [
-      "Velocidade de digitação",
-      "Quantidade de trabalho que a equipe completa por sprint, em story points ou itens",
-      "Velocidade de internet",
-      "Tempo de resposta a e-mails"
+      "Paraleliza atividades",
+      "Adiciona recursos para reduzir duração ao menor custo incremental",
+      "Reduz qualidade",
+      "Elimina atividades"
     ],
     correctAnswer: 1,
-    explanation: "Velocity é a medida de capacidade da equipe baseada em trabalho entregue em sprints anteriores.",
-    domain: "Medição",
+    explanation: "Crashing adiciona recursos (pessoas, horas extras, etc.) para comprimir o cronograma. Aumenta custos mas não necessariamente aumenta riscos como fast tracking.",
+    domain: "Planejamento",
+    difficulty: "medium"
+  },
+  {
+    id: 158,
+    question: "O conceito de 'Gold Plating' refere-se a:",
+    options: [
+      "Qualidade excelente",
+      "Adicionar funcionalidades não solicitadas pelo cliente",
+      "Exceder orçamento",
+      "Usar materiais premium"
+    ],
+    correctAnswer: 1,
+    explanation: "Gold plating é adicionar funcionalidades ou melhorias não solicitadas. É considerado negativo pois adiciona trabalho não autorizado e riscos.",
+    domain: "Entrega",
+    difficulty: "medium"
+  },
+  {
+    id: 159,
+    question: "Scope Creep é:",
+    options: [
+      "Mudanças aprovadas no escopo",
+      "Expansão não controlada do escopo sem aprovação formal",
+      "Redução de escopo",
+      "Mudança de equipe"
+    ],
+    correctAnswer: 1,
+    explanation: "Scope creep é a adição não controlada de funcionalidades ou trabalho sem aprovação através do processo de controle de mudanças.",
+    domain: "Trabalho do Projeto",
+    difficulty: "easy"
+  },
+  {
+    id: 160,
+    question: "O Termo de Abertura do Projeto (Project Charter) autoriza:",
+    options: [
+      "Apenas o orçamento",
+      "O projeto formalmente e dá autoridade ao gerente de projeto",
+      "Apenas a equipe",
+      "Apenas o cronograma"
+    ],
+    correctAnswer: 1,
+    explanation: "O Project Charter autoriza formalmente a existência do projeto, define objetivos de alto nível e dá autoridade ao gerente de projeto para usar recursos.",
+    domain: "Ambiente Corporativo",
     difficulty: "easy"
   },
   {
     id: 161,
-    question: "Lead time em Kanban mede:",
+    question: "O patrocinador do projeto geralmente:",
     options: [
-      "Tempo de liderança",
-      "Tempo desde a solicitação até a entrega do item",
-      "Tempo de desenvolvimento apenas",
-      "Tempo de reuniões"
+      "Executa tarefas técnicas",
+      "Fornece recursos, direção estratégica e resolve problemas escalados",
+      "Gerencia a equipe diariamente",
+      "Escreve código"
     ],
     correctAnswer: 1,
-    explanation: "Lead time é o tempo total que um item leva desde o pedido até chegar ao cliente.",
-    domain: "Medição",
-    difficulty: "medium"
+    explanation: "O patrocinador é o campeão do projeto, provendo recursos, orientação estratégica, suporte executivo e resolvendo impedimentos além da autoridade do GP.",
+    domain: "Stakeholders",
+    difficulty: "easy"
   },
   {
     id: 162,
-    question: "Cycle time difere de lead time porque:",
+    question: "Agile Manifesto valoriza:",
     options: [
-      "São iguais",
-      "Cycle time mede apenas o tempo de trabalho ativo; lead time inclui todo tempo de espera",
-      "Lead time é menor",
-      "Cycle time não pode ser medido"
+      "Processos sobre pessoas",
+      "Indivíduos e interações sobre processos e ferramentas",
+      "Documentação sobre software",
+      "Contratos sobre colaboração"
     ],
     correctAnswer: 1,
-    explanation: "Cycle time é o tempo de trabalho ativo; lead time é o tempo total incluindo filas e esperas.",
-    domain: "Medição",
-    difficulty: "medium"
+    explanation: "O Manifesto Ágil valoriza: Indivíduos e interações, Software funcionando, Colaboração com cliente, e Responder a mudanças - sobre as alternativas.",
+    domain: "Processo",
+    difficulty: "easy"
   },
   {
     id: 163,
-    question: "O que é 'Estimate at Completion' (EAC)?",
+    question: "Os 4 valores do Manifesto Ágil incluem todos, EXCETO:",
     options: [
-      "Estimativa inicial do projeto",
-      "Previsão do custo total final do projeto baseada no desempenho atual",
-      "Custo real até agora",
-      "Orçamento original"
+      "Indivíduos e interações sobre processos e ferramentas",
+      "Software funcionando sobre documentação abrangente",
+      "Velocidade máxima sobre qualidade",
+      "Responder a mudanças sobre seguir um plano"
     ],
-    correctAnswer: 1,
-    explanation: "EAC é a projeção do custo total final, recalculada com base no desempenho e condições atuais.",
-    domain: "Medição",
+    correctAnswer: 2,
+    explanation: "Os 4 valores são: Indivíduos/interações, Software funcionando, Colaboração com cliente, Responder a mudanças. Velocidade sobre qualidade não é um valor ágil.",
+    domain: "Processo",
     difficulty: "medium"
   },
   {
     id: 164,
-    question: "Burnup charts mostram:",
+    question: "Um projeto com alto grau de incerteza sobre requisitos deveria usar:",
     options: [
-      "Trabalho restante",
-      "Trabalho completado ao longo do tempo em relação ao escopo total",
-      "Custos acumulados",
-      "Riscos identificados"
+      "Apenas abordagem preditiva",
+      "Abordagem adaptativa/ágil com iterações curtas",
+      "Nenhum planejamento",
+      "Apenas documentação"
     ],
     correctAnswer: 1,
-    explanation: "Burnup charts visualizam progresso acumulado e podem mostrar mudanças de escopo também.",
-    domain: "Medição",
+    explanation: "Alta incerteza requer abordagens que permitam aprendizado e adaptação frequentes através de iterações curtas e feedback contínuo.",
+    domain: "Abordagem de Desenvolvimento",
     difficulty: "easy"
   },
   {
     id: 165,
-    question: "Métricas de qualidade incluem:",
+    question: "Cynefin Framework ajuda a escolher abordagens classificando contextos em:",
     options: [
-      "Apenas custos de qualidade",
-      "Densidade de defeitos, taxa de resolução, satisfação do cliente, cobertura de testes",
-      "Apenas número de testes",
-      "Apenas feedback negativo"
+      "Fácil e Difícil",
+      "Simples, Complicado, Complexo, Caótico",
+      "Pequeno e Grande",
+      "Rápido e Lento"
     ],
     correctAnswer: 1,
-    explanation: "Métricas de qualidade abrangem múltiplos indicadores de conformidade e satisfação.",
-    domain: "Medição",
-    difficulty: "easy"
-  },
-  {
-    id: 166,
-    question: "Em projetos da NASA, 'TRL' (Technology Readiness Level) mede:",
-    options: [
-      "Nível de treinamento",
-      "Maturidade de uma tecnologia desde conceito até operação comprovada",
-      "Velocidade de processamento",
-      "Custo de desenvolvimento"
-    ],
-    correctAnswer: 1,
-    explanation: "TRL é uma escala de 1-9 que avalia quão madura uma tecnologia está para uso em missões.",
-    domain: "Medição",
+    explanation: "Cynefin classifica contextos para ajudar a escolher abordagens apropriadas. Contextos simples e complicados são mais previsíveis; complexos e caóticos requerem experimentação.",
+    domain: "Abordagem de Desenvolvimento",
     difficulty: "hard"
   },
   {
-    id: 167,
-    question: "Cumulative Flow Diagram (CFD) mostra:",
+    id: 166,
+    question: "O conceito de 'Servant Leadership' significa que o líder:",
     options: [
-      "Fluxo de caixa",
-      "Quantidade de trabalho em cada estágio ao longo do tempo, revelando gargalos",
-      "Organograma",
-      "Cronograma de entregas"
+      "É servido pela equipe",
+      "Serve a equipe para ajudá-la a ter sucesso",
+      "Toma todas as decisões",
+      "Delega toda responsabilidade"
     ],
     correctAnswer: 1,
-    explanation: "CFD visualiza o fluxo de trabalho através de estágios, identificando bloqueios e tendências.",
-    domain: "Medição",
-    difficulty: "medium"
+    explanation: "Liderança servidora coloca o sucesso da equipe em primeiro lugar. O líder remove impedimentos, facilita e cria condições para a equipe prosperar.",
+    domain: "Liderança",
+    difficulty: "easy"
+  },
+  {
+    id: 167,
+    question: "Change Control Board (CCB) é responsável por:",
+    options: [
+      "Implementar mudanças",
+      "Revisar, avaliar e aprovar ou rejeitar solicitações de mudança",
+      "Solicitar mudanças",
+      "Ignorar mudanças"
+    ],
+    correctAnswer: 1,
+    explanation: "O CCB é o grupo formalmente autorizado para revisar e tomar decisões sobre solicitações de mudança no projeto.",
+    domain: "Trabalho do Projeto",
+    difficulty: "easy"
   },
   {
     id: 168,
-    question: "Net Promoter Score (NPS) mede:",
+    question: "Configuration Management garante:",
     options: [
-      "Lucro líquido",
-      "Probabilidade de stakeholders recomendarem o projeto ou produto",
-      "Número de promessas",
-      "Velocidade da rede"
+      "Apenas versões de código",
+      "Integridade dos produtos e documentos do projeto através de controle de versão e mudanças",
+      "Apenas backup de dados",
+      "Apenas segurança de rede"
     ],
     correctAnswer: 1,
-    explanation: "NPS indica lealdade e satisfação perguntando quão provável é uma recomendação.",
-    domain: "Medição",
+    explanation: "Gerenciamento de Configuração controla versões de todos os artefatos do projeto, garantindo integridade e rastreabilidade de mudanças.",
+    domain: "Trabalho do Projeto",
     difficulty: "medium"
   },
   {
     id: 169,
-    question: "Por que evitar 'vanity metrics'?",
+    question: "O ciclo PDCA (Deming) representa:",
     options: [
-      "São muito caras para coletar",
-      "Parecem impressionantes mas não fornecem insights acionáveis para decisões",
-      "São difíceis de calcular",
-      "Requerem muita documentação"
+      "Project, Document, Control, Accept",
+      "Plan, Do, Check, Act",
+      "Prepare, Develop, Close, Approve",
+      "Problem, Decision, Cost, Action"
     ],
     correctAnswer: 1,
-    explanation: "Vanity metrics inflam o ego mas não informam decisões reais ou indicam saúde do projeto.",
-    domain: "Medição",
-    difficulty: "medium"
+    explanation: "PDCA é Plan (planejar), Do (executar), Check (verificar), Act (agir). É um ciclo de melhoria contínua aplicável a processos e projetos.",
+    domain: "Entrega",
+    difficulty: "easy"
   },
   {
     id: 170,
-    question: "Baseline de medição serve como:",
+    question: "Análise SWOT avalia:",
     options: [
-      "Meta final",
-      "Referência aprovada contra a qual variações são medidas",
-      "Estimativa inicial não aprovada",
-      "Previsão do final"
+      "Apenas custos",
+      "Forças, Fraquezas, Oportunidades e Ameaças",
+      "Apenas cronograma",
+      "Apenas qualidade"
     ],
     correctAnswer: 1,
-    explanation: "A baseline é o ponto de referência aprovado para comparar desempenho real e identificar variações.",
-    domain: "Medição",
+    explanation: "SWOT analisa Strengths (forças), Weaknesses (fraquezas), Opportunities (oportunidades) e Threats (ameaças) - internas e externas.",
+    domain: "Planejamento",
     difficulty: "easy"
   },
   {
     id: 171,
-    question: "Relatórios de progresso devem incluir:",
+    question: "Root Cause Analysis (Análise de Causa Raiz) usa técnicas como:",
     options: [
-      "Apenas boas notícias",
-      "Status atual, variações, riscos, problemas e ações necessárias de forma honesta",
-      "Apenas números financeiros",
-      "Críticas à gerência"
+      "Apenas brainstorming",
+      "5 Porquês, Diagrama de Ishikawa (Espinha de Peixe)",
+      "Apenas votação",
+      "Apenas intuição"
     ],
     correctAnswer: 1,
-    explanation: "Relatórios eficazes são honestos e completos, cobrindo progresso, problemas e próximos passos.",
-    domain: "Medição",
-    difficulty: "easy"
+    explanation: "Análise de causa raiz usa técnicas como 5 Porquês (perguntar 'por quê' repetidamente) e Diagrama de Ishikawa para identificar causas fundamentais de problemas.",
+    domain: "Entrega",
+    difficulty: "medium"
   },
   {
     id: 172,
-    question: "O que é 'Earned Value' (EV)?",
+    question: "O Diagrama de Ishikawa organiza causas potenciais de um problema em:",
     options: [
-      "Valor orçado do trabalho realizado até a data",
-      "Custo real gasto",
-      "Orçamento total",
-      "Valor do contrato"
+      "Ordem cronológica",
+      "Categorias como Pessoas, Processos, Máquinas, Materiais, Ambiente",
+      "Ordem de custo",
+      "Ordem alfabética"
     ],
-    correctAnswer: 0,
-    explanation: "EV é o valor orçado do trabalho efetivamente completado, medindo progresso em termos financeiros.",
-    domain: "Medição",
+    correctAnswer: 1,
+    explanation: "O diagrama de espinha de peixe organiza causas em categorias (6Ms: Mão de obra, Método, Máquina, Material, Medição, Meio ambiente) para análise estruturada.",
+    domain: "Entrega",
     difficulty: "medium"
   },
   {
     id: 173,
-    question: "Actual Cost (AC) representa:",
+    question: "Diagrama de Pareto é baseado na regra:",
     options: [
-      "Custo planejado",
-      "Custo real incorrido para o trabalho realizado até a data",
-      "Custo estimado para conclusão",
-      "Orçamento na conclusão"
+      "100/0",
+      "80/20 - 80% dos efeitos vêm de 20% das causas",
+      "50/50",
+      "90/10"
     ],
     correctAnswer: 1,
-    explanation: "AC é o custo real, documentado, que foi gasto para realizar o trabalho até o momento.",
-    domain: "Medição",
+    explanation: "O Princípio de Pareto sugere que 80% dos problemas são causados por 20% das causas. O diagrama prioriza focar nas causas mais significativas.",
+    domain: "Entrega",
     difficulty: "easy"
   },
   {
     id: 174,
-    question: "Planned Value (PV) representa:",
+    question: "Contratos de Preço Fixo (Fixed Price) são mais apropriados quando:",
     options: [
-      "Custo real",
-      "Valor do trabalho que deveria ter sido concluído até a data segundo o plano",
-      "Valor ganho",
-      "Custo final projetado"
+      "O escopo é incerto",
+      "O escopo é bem definido e estável",
+      "Há muitas mudanças esperadas",
+      "O fornecedor deve correr todos os riscos"
     ],
     correctAnswer: 1,
-    explanation: "PV é o orçamento autorizado atribuído ao trabalho que deveria estar completo no momento da análise.",
-    domain: "Medição",
-    difficulty: "easy"
+    explanation: "Contratos de preço fixo funcionam melhor quando o escopo é claro e estável, pois o preço é acordado antecipadamente.",
+    domain: "Ambiente Corporativo",
+    difficulty: "medium"
   },
   {
     id: 175,
-    question: "TCPI (To-Complete Performance Index) indica:",
+    question: "Contratos Time & Materials (T&M) são apropriados quando:",
     options: [
-      "Desempenho passado",
-      "Desempenho de custo necessário no trabalho restante para atingir meta orçamentária",
-      "Índice de qualidade",
-      "Satisfação da equipe"
+      "O escopo é 100% definido",
+      "O escopo não pode ser definido precisamente no início",
+      "O preço deve ser fixo",
+      "Não há riscos"
     ],
     correctAnswer: 1,
-    explanation: "TCPI mostra a eficiência necessária no trabalho restante para cumprir o orçamento ou EAC.",
-    domain: "Medição",
-    difficulty: "hard"
+    explanation: "T&M é útil quando o escopo não está totalmente definido. O cliente paga pelo tempo e materiais usados, com mais flexibilidade mas menos previsibilidade de custo.",
+    domain: "Ambiente Corporativo",
+    difficulty: "medium"
   },
-
-  // UNCERTAINTY (176-200)
   {
     id: 176,
-    question: "Incerteza em projetos refere-se a:",
+    question: "A matriz de probabilidade e impacto de riscos ajuda a:",
     options: [
-      "Falta de interesse",
-      "Estado de não saber completamente, gerando riscos e oportunidades",
-      "Certeza absoluta",
-      "Apenas riscos negativos"
+      "Calcular custos exatos",
+      "Priorizar riscos com base em sua probabilidade e impacto potencial",
+      "Eliminar todos os riscos",
+      "Atribuir recursos"
     ],
     correctAnswer: 1,
-    explanation: "Incerteza é a condição de conhecimento incompleto que pode resultar em riscos ou oportunidades.",
-    domain: "Incerteza",
+    explanation: "A matriz combina probabilidade de ocorrência com impacto potencial para priorizar quais riscos requerem mais atenção e resposta.",
+    domain: "Métricas e Incertezas",
     difficulty: "easy"
   },
   {
     id: 177,
-    question: "Risco negativo (ameaça) e risco positivo (oportunidade) diferem porque:",
+    question: "O Registro de Riscos contém:",
     options: [
-      "Oportunidades não existem em projetos",
-      "Ameaças podem prejudicar objetivos; oportunidades podem beneficiá-los se exploradas",
-      "Apenas ameaças precisam de gestão",
-      "São tratados da mesma forma"
+      "Apenas riscos negativos",
+      "Lista de riscos identificados, suas análises e respostas planejadas",
+      "Apenas custos de riscos",
+      "Apenas nomes dos responsáveis"
     ],
     correctAnswer: 1,
-    explanation: "Ameaças podem causar danos; oportunidades podem trazer benefícios se identificadas e aproveitadas.",
-    domain: "Incerteza",
+    explanation: "O Registro de Riscos documenta todos os riscos identificados (positivos e negativos), suas análises, respostas planejadas, responsáveis e status.",
+    domain: "Métricas e Incertezas",
     difficulty: "easy"
   },
   {
     id: 178,
-    question: "A estratégia 'evitar' para riscos negativos significa:",
+    question: "Técnicas de resolução de conflitos incluem todas, EXCETO:",
     options: [
-      "Ignorar o risco",
-      "Eliminar a ameaça modificando o plano do projeto para remover a causa",
-      "Aceitar as consequências",
-      "Transferir para terceiros"
+      "Colaboração (problema-solving)",
+      "Compromisso",
+      "Evitar",
+      "Demissão imediata"
     ],
-    correctAnswer: 1,
-    explanation: "Evitar elimina o risco mudando algum aspecto do projeto para remover completamente a ameaça.",
-    domain: "Incerteza",
-    difficulty: "medium"
+    correctAnswer: 3,
+    explanation: "Técnicas reconhecidas incluem: Colaboração, Compromisso, Evitar, Acomodar e Forçar. Demissão imediata não é técnica de resolução de conflitos.",
+    domain: "Equipe",
+    difficulty: "easy"
   },
   {
     id: 179,
-    question: "Transferir um risco significa:",
+    question: "A técnica de resolução de conflitos 'Colaboração' busca:",
     options: [
-      "Ignorá-lo",
-      "Passar a responsabilidade pelo impacto para terceiros, como através de seguro ou contrato",
-      "Aceitá-lo passivamente",
-      "Eliminá-lo completamente"
+      "Uma parte ceder completamente",
+      "Solução ganha-ganha que satisfaz todas as partes",
+      "Ignorar o conflito",
+      "Decisão autoritária"
     ],
     correctAnswer: 1,
-    explanation: "Transferência desloca a consequência financeira ou responsabilidade para outra parte.",
-    domain: "Incerteza",
+    explanation: "Colaboração (problem-solving) trabalha através do conflito para encontrar uma solução que atenda às necessidades de todas as partes - ganha-ganha.",
+    domain: "Equipe",
     difficulty: "medium"
   },
   {
     id: 180,
-    question: "Mitigação de riscos envolve:",
+    question: "Na pirâmide de Maslow, necessidades de 'Autorrealização' estão:",
     options: [
-      "Ignorar o risco",
-      "Tomar ações para reduzir a probabilidade ou impacto de uma ameaça",
-      "Aceitar o risco",
-      "Transferir para seguradora"
+      "Na base",
+      "No topo, representando potencial máximo e crescimento",
+      "No meio",
+      "Não fazem parte da pirâmide"
     ],
     correctAnswer: 1,
-    explanation: "Mitigação implementa ações para diminuir a chance de ocorrência ou reduzir a severidade do impacto.",
-    domain: "Incerteza",
-    difficulty: "easy"
+    explanation: "Autorrealização está no topo da pirâmide de Maslow, representando a necessidade de alcançar o potencial máximo e crescimento pessoal.",
+    domain: "Equipe",
+    difficulty: "medium"
   },
   {
     id: 181,
-    question: "Aceitação ativa de risco difere de passiva porque:",
+    question: "Segundo Herzberg, fatores motivadores incluem:",
     options: [
-      "São iguais",
-      "Ativa estabelece contingência ou plano de resposta; passiva não faz nada antecipadamente",
-      "Passiva é mais cara",
-      "Ativa ignora o risco"
+      "Apenas salário",
+      "Reconhecimento, realização, crescimento, responsabilidade",
+      "Apenas condições de trabalho",
+      "Apenas políticas da empresa"
     ],
     correctAnswer: 1,
-    explanation: "Aceitação ativa prepara reservas ou planos; passiva apenas reconhece o risco sem ação prévia.",
-    domain: "Incerteza",
+    explanation: "Motivadores de Herzberg incluem: reconhecimento, realização, crescimento, responsabilidade, o trabalho em si. Salário e condições são fatores higiênicos.",
+    domain: "Equipe",
     difficulty: "medium"
   },
   {
     id: 182,
-    question: "Em projetos offshore no Brasil, riscos de subsuperfície são tratados como:",
+    question: "Comunicação eficaz em projetos deve ser:",
     options: [
-      "Não importantes",
-      "Incertezas técnicas significativas que requerem análise especializada e reservas",
-      "Garantidos por seguro apenas",
-      "Responsabilidade exclusiva do governo"
+      "Apenas verbal",
+      "Clara, concisa, oportuna e apropriada para o público",
+      "Apenas escrita",
+      "Apenas formal"
     ],
     correctAnswer: 1,
-    explanation: "Riscos de subsuperfície são incertezas técnicas críticas que afetam viabilidade e planejamento.",
-    domain: "Incerteza",
-    difficulty: "hard"
-  },
-  {
-    id: 183,
-    question: "O registro de riscos documenta:",
-    options: [
-      "Apenas riscos negativos",
-      "Riscos identificados, análises, respostas planejadas, donos e status",
-      "Apenas custos de contingência",
-      "Somente riscos do passado"
-    ],
-    correctAnswer: 1,
-    explanation: "O registro é um documento abrangente com informações completas sobre todos os riscos identificados.",
-    domain: "Incerteza",
+    explanation: "Comunicação eficaz é clara (sem ambiguidade), concisa (sem excesso), oportuna (no momento certo) e adaptada ao público-alvo.",
+    domain: "Comunicação",
     difficulty: "easy"
   },
   {
-    id: 184,
-    question: "Análise Monte Carlo é usada para:",
+    id: 183,
+    question: "O plano de gerenciamento de comunicações define:",
     options: [
-      "Jogos de azar",
-      "Simular cenários de cronograma ou custo usando probabilidades para entender faixa de resultados possíveis",
-      "Calcular impostos",
-      "Gerenciar equipes"
+      "Apenas emails a enviar",
+      "Quem precisa de qual informação, quando, como e com qual frequência",
+      "Apenas reuniões",
+      "Apenas relatórios"
     ],
     correctAnswer: 1,
-    explanation: "Monte Carlo usa simulação estatística para modelar incerteza e prever distribuição de resultados.",
-    domain: "Incerteza",
-    difficulty: "hard"
+    explanation: "O plano de comunicações define requisitos de informação dos stakeholders, métodos de distribuição, frequência, responsáveis e ferramentas.",
+    domain: "Comunicação",
+    difficulty: "medium"
+  },
+  {
+    id: 184,
+    question: "Retrospectiva em Scrum responde a:",
+    options: [
+      "Quanto custou o sprint",
+      "O que funcionou bem, o que pode melhorar e quais ações tomar",
+      "Quantas horas foram trabalhadas",
+      "Quem teve melhor desempenho"
+    ],
+    correctAnswer: 1,
+    explanation: "A Retrospectiva examina o sprint passado em termos de pessoas, relacionamentos, processos e ferramentas, identificando melhorias para o próximo sprint.",
+    domain: "Processo",
+    difficulty: "easy"
   },
   {
     id: 185,
-    question: "Sensibilidade de risco mostra:",
+    question: "Sprint Planning em Scrum define:",
     options: [
-      "Como a equipe se sente sobre riscos",
-      "Quais riscos ou variáveis têm maior impacto potencial nos resultados do projeto",
-      "A temperatura do ambiente",
-      "O humor do patrocinador"
+      "Apenas a data de entrega",
+      "O que será entregue no sprint e como o trabalho será feito",
+      "Apenas os custos",
+      "Apenas os riscos"
     ],
     correctAnswer: 1,
-    explanation: "Análise de sensibilidade identifica quais incertezas mais influenciam os resultados do projeto.",
-    domain: "Incerteza",
-    difficulty: "medium"
+    explanation: "Sprint Planning define a Meta do Sprint, seleciona itens do backlog e cria o plano (Sprint Backlog) de como a equipe entregará o incremento.",
+    domain: "Processo",
+    difficulty: "easy"
   },
   {
     id: 186,
-    question: "O apetite de risco de uma organização define:",
+    question: "A duração máxima de uma Daily Scrum é:",
     options: [
-      "Quanto dinheiro gastar em comida",
-      "O grau de incerteza que a organização está disposta a aceitar em busca de objetivos",
-      "Número de riscos aceitos",
-      "Apenas riscos financeiros"
+      "1 hora",
+      "15 minutos",
+      "30 minutos",
+      "Ilimitada"
     ],
     correctAnswer: 1,
-    explanation: "Apetite de risco é a quantidade e tipo de risco que uma organização está disposta a assumir.",
-    domain: "Incerteza",
-    difficulty: "medium"
+    explanation: "A Daily Scrum é time-boxed em 15 minutos. É um evento rápido para a equipe sincronizar e planejar as próximas 24 horas.",
+    domain: "Processo",
+    difficulty: "easy"
   },
   {
     id: 187,
-    question: "Um 'risk owner' é responsável por:",
+    question: "Quem participa da Sprint Review?",
     options: [
-      "Criar todos os riscos",
-      "Monitorar e implementar respostas planejadas para riscos designados",
-      "Apenas documentar riscos",
-      "Aprovar o orçamento"
+      "Apenas a equipe Scrum",
+      "Equipe Scrum e stakeholders-chave",
+      "Apenas o Product Owner",
+      "Apenas o Scrum Master"
     ],
     correctAnswer: 1,
-    explanation: "O dono do risco é accountable por monitorar o risco e executar ou coordenar respostas.",
-    domain: "Incerteza",
+    explanation: "A Sprint Review inclui a equipe Scrum (PO, SM, Developers) e stakeholders-chave para inspecionar o incremento e adaptar o backlog.",
+    domain: "Processo",
     difficulty: "easy"
   },
   {
     id: 188,
-    question: "Complexidade em projetos pode surgir de:",
+    question: "Em projetos de grande escala, SAFe (Scaled Agile Framework) usa:",
     options: [
-      "Apenas tecnologia",
-      "Comportamentos humanos, sistemas interconectados, ambiguidade e dinâmicas emergentes",
-      "Apenas tamanho",
-      "Apenas localização"
+      "Apenas uma equipe Scrum",
+      "Múltiplas equipes ágeis coordenadas em ARTs (Agile Release Trains)",
+      "Apenas abordagem cascata",
+      "Nenhuma coordenação"
     ],
     correctAnswer: 1,
-    explanation: "Complexidade pode ter múltiplas fontes incluindo comportamentos, conexões, ambiguidade e mudanças.",
-    domain: "Incerteza",
-    difficulty: "medium"
+    explanation: "SAFe escala ágil organizando múltiplas equipes em ARTs (Agile Release Trains) que planejam e entregam valor juntas em Program Increments.",
+    domain: "Processo",
+    difficulty: "hard"
   },
   {
     id: 189,
-    question: "Volatilidade em ambiente de projeto refere-se a:",
+    question: "Benefit Realization é o processo de:",
     options: [
-      "Agressividade da equipe",
-      "Velocidade e magnitude de mudanças imprevisíveis no ambiente do projeto",
-      "Preços de commodities apenas",
-      "Temperatura do escritório"
+      "Calcular custos",
+      "Garantir que os benefícios esperados do projeto sejam alcançados",
+      "Pagar fornecedores",
+      "Encerrar contratos"
     ],
     correctAnswer: 1,
-    explanation: "Volatilidade é a taxa e intensidade de mudanças no ambiente que afetam o projeto.",
-    domain: "Incerteza",
+    explanation: "Realização de Benefícios assegura que os benefícios planejados do projeto sejam efetivamente entregues e possam ser medidos após o projeto.",
+    domain: "Stakeholders",
     difficulty: "medium"
   },
   {
     id: 190,
-    question: "Ambiguidade difere de risco porque:",
+    question: "Business Case justifica o projeto através de:",
     options: [
-      "São a mesma coisa",
-      "Ambiguidade é incerteza conceitual sobre o que algo significa; risco pode ser probabilístico",
-      "Risco é sempre maior",
-      "Ambiguidade não afeta projetos"
+      "Apenas técnicas",
+      "Análise de custos, benefícios, riscos e alternativas",
+      "Apenas cronograma",
+      "Apenas requisitos técnicos"
     ],
     correctAnswer: 1,
-    explanation: "Ambiguidade envolve falta de clareza sobre significados ou interpretações, não apenas probabilidades.",
-    domain: "Incerteza",
-    difficulty: "hard"
-  },
-  {
-    id: 191,
-    question: "Em projetos de missões da NASA, 'unknown unknowns' são:",
-    options: [
-      "Ignorados no planejamento",
-      "Riscos que não podemos prever ou imaginar antecipadamente, cobertos por management reserve",
-      "Conhecidos por todos",
-      "Facilmente identificáveis"
-    ],
-    correctAnswer: 1,
-    explanation: "Unknown unknowns são riscos imprevisíveis, tratados com reservas gerenciais para flexibilidade.",
-    domain: "Incerteza",
-    difficulty: "hard"
-  },
-  {
-    id: 192,
-    question: "Trigger de risco é:",
-    options: [
-      "Um gatilho de arma",
-      "Indicador ou evento que sinaliza que um risco está prestes a ocorrer ou ocorreu",
-      "O próprio risco",
-      "Uma estratégia de resposta"
-    ],
-    correctAnswer: 1,
-    explanation: "Triggers são sinais de alerta que indicam a materialização iminente ou real de um risco.",
-    domain: "Incerteza",
+    explanation: "O Business Case documenta a justificativa do projeto, incluindo análise de custos-benefícios, riscos, alternativas consideradas e retorno esperado.",
+    domain: "Ambiente Corporativo",
     difficulty: "medium"
   },
   {
-    id: 193,
-    question: "Riscos residuais são:",
+    id: 191,
+    question: "Quality Assurance (QA) foca em:",
     options: [
-      "Riscos eliminados",
-      "Riscos que permanecem após implementar respostas planejadas",
-      "Riscos que nunca existiram",
-      "Apenas riscos documentais"
+      "Inspecionar produtos finais",
+      "Auditar processos para garantir que padrões estão sendo seguidos",
+      "Corrigir defeitos",
+      "Testar software"
     ],
     correctAnswer: 1,
-    explanation: "Riscos residuais são aqueles que persistem mesmo depois de ações de resposta serem implementadas.",
-    domain: "Incerteza",
-    difficulty: "easy"
+    explanation: "QA é sobre processos - garante que políticas, procedimentos e padrões de qualidade estão sendo seguidos. QC inspeciona produtos.",
+    domain: "Entrega",
+    difficulty: "medium"
+  },
+  {
+    id: 192,
+    question: "Cost of Quality (COQ) inclui:",
+    options: [
+      "Apenas custos de testes",
+      "Custos de conformidade (prevenção, inspeção) e não-conformidade (falhas)",
+      "Apenas custos de materiais",
+      "Apenas salários"
+    ],
+    correctAnswer: 1,
+    explanation: "COQ inclui custos de conformidade (prevenção e avaliação para evitar defeitos) e não-conformidade (falhas internas e externas).",
+    domain: "Entrega",
+    difficulty: "hard"
+  },
+  {
+    id: 193,
+    question: "O princípio 'Be a Diligent, Respectful and Caring Steward' do PMI enfatiza:",
+    options: [
+      "Apenas entregar no prazo",
+      "Responsabilidade ética, respeito e cuidado com recursos e stakeholders",
+      "Apenas controle de custos",
+      "Apenas velocidade"
+    ],
+    correctAnswer: 1,
+    explanation: "Este princípio ético enfatiza que GPs devem agir com integridade, cuidar de recursos, respeitar pessoas e ser responsáveis em suas ações.",
+    domain: "Liderança",
+    difficulty: "medium"
   },
   {
     id: 194,
-    question: "Riscos secundários são:",
+    question: "Em um ambiente VUCA (Volatile, Uncertain, Complex, Ambiguous), projetos devem:",
     options: [
-      "Riscos menores",
-      "Novos riscos criados como resultado direto de implementar uma resposta a outro risco",
-      "Riscos ignorados",
-      "Riscos de segunda categoria"
+      "Usar apenas abordagem rígida",
+      "Ser adaptáveis, usar iterações curtas e estar preparados para mudanças",
+      "Evitar qualquer planejamento",
+      "Ignorar incertezas"
     ],
     correctAnswer: 1,
-    explanation: "Riscos secundários surgem das próprias ações de resposta a riscos, exigindo análise adicional.",
-    domain: "Incerteza",
+    explanation: "Ambientes VUCA requerem agilidade, planejamento adaptativo, respostas rápidas a mudanças e capacidade de navegar incerteza.",
+    domain: "Abordagem de Desenvolvimento",
     difficulty: "medium"
   },
   {
     id: 195,
-    question: "Em projetos de óleo e gás em Angola, riscos geopolíticos:",
+    question: "Timeboxing é uma técnica que:",
     options: [
-      "Não existem",
-      "São fatores externos significativos que podem afetar continuidade, segurança e custos",
-      "São sempre controláveis",
-      "Afetam apenas a política"
+      "Elimina prazos",
+      "Define duração fixa para atividades, forçando foco e decisão",
+      "Aumenta duração indefinidamente",
+      "Ignora o tempo"
     ],
     correctAnswer: 1,
-    explanation: "Riscos geopolíticos são fatores externos críticos em regiões de instabilidade que afetam projetos.",
-    domain: "Incerteza",
-    difficulty: "medium"
+    explanation: "Timeboxing aloca tempo fixo para atividades. Quando o tempo acaba, a atividade termina, forçando priorização e tomada de decisão.",
+    domain: "Planejamento",
+    difficulty: "easy"
   },
   {
     id: 196,
-    question: "A estratégia 'explorar' para oportunidades significa:",
+    question: "MoSCoW priorização significa:",
     options: [
-      "Apenas observar",
-      "Tomar ações para garantir que a oportunidade seja realizada",
-      "Ignorar a oportunidade",
-      "Transferir para terceiros"
+      "Cidade da Rússia",
+      "Must have, Should have, Could have, Won't have",
+      "Método de cálculo de custos",
+      "Técnica de programação"
     ],
     correctAnswer: 1,
-    explanation: "Explorar maximiza a probabilidade de que uma oportunidade positiva se concretize.",
-    domain: "Incerteza",
-    difficulty: "medium"
+    explanation: "MoSCoW é técnica de priorização: Must (essencial), Should (importante), Could (desejável), Won't (excluído desta iteração/release).",
+    domain: "Planejamento",
+    difficulty: "easy"
   },
   {
     id: 197,
-    question: "Aumentar uma oportunidade significa:",
+    question: "Definition of Ready (DoR) define:",
     options: [
-      "Criar mais problemas",
-      "Tomar ações para aumentar a probabilidade e/ou impacto positivo",
-      "Aceitar passivamente",
-      "Transferir benefícios"
+      "Quando o projeto termina",
+      "Critérios que um item do backlog deve atender antes de entrar em um sprint",
+      "Quando um membro está pronto para trabalhar",
+      "Requisitos de hardware"
     ],
     correctAnswer: 1,
-    explanation: "Aumentar implementa ações para ampliar a chance ou magnitude do benefício de uma oportunidade.",
-    domain: "Incerteza",
+    explanation: "DoR são critérios que um item do backlog deve satisfazer para ser considerado 'pronto' para ser selecionado em um Sprint Planning.",
+    domain: "Processo",
     difficulty: "medium"
   },
   {
     id: 198,
-    question: "Compartilhar uma oportunidade envolve:",
+    question: "Velocidade de uma equipe Scrum pode ser usada para:",
     options: [
-      "Dividir apenas custos",
-      "Alocar propriedade a terceiros melhor posicionados para capturar o benefício",
-      "Guardar segredo",
-      "Ignorar a oportunidade"
+      "Comparar equipes diferentes",
+      "Prever capacidade futura da mesma equipe e planejar releases",
+      "Avaliar desempenho individual",
+      "Definir salários"
     ],
     correctAnswer: 1,
-    explanation: "Compartilhar envolve parcerias onde terceiros podem melhor realizar e compartilhar benefícios.",
-    domain: "Incerteza",
+    explanation: "Velocidade é uma métrica de previsão para a mesma equipe. Não deve ser usada para comparar equipes ou avaliar indivíduos, pois cada contexto é único.",
+    domain: "Métricas e Incertezas",
     difficulty: "medium"
   },
   {
     id: 199,
-    question: "Resiliência em projetos significa:",
+    question: "Técnica dos 5 Porquês busca:",
     options: [
-      "Rigidez total",
-      "Capacidade de absorver impactos, se adaptar e se recuperar de adversidades",
-      "Evitar todos os riscos",
-      "Nunca mudar planos"
+      "Fazer 5 perguntas sobre custos",
+      "Identificar a causa raiz de um problema perguntando 'por quê' repetidamente",
+      "Encontrar 5 soluções",
+      "Listar 5 riscos"
     ],
     correctAnswer: 1,
-    explanation: "Resiliência é a habilidade de resistir a choques, adaptar-se e continuar progredindo.",
-    domain: "Incerteza",
+    explanation: "Os 5 Porquês é técnica de análise de causa raiz onde se pergunta 'por quê' repetidamente (tipicamente 5 vezes) até chegar à causa fundamental do problema.",
+    domain: "Entrega",
     difficulty: "easy"
   },
   {
     id: 200,
-    question: "O princípio do PMBOK 7 sobre incerteza enfatiza:",
+    question: "O sucesso de um projeto moderno é medido por:",
     options: [
-      "Evitar toda incerteza",
-      "Abraçar adaptabilidade e resiliência, navegando em ambientes complexos",
-      "Ignorar riscos",
-      "Planejar rigidamente"
+      "Apenas cumprir prazo e orçamento",
+      "Valor entregue, satisfação de stakeholders, benefícios realizados",
+      "Apenas número de funcionalidades",
+      "Apenas documentação produzida"
     ],
     correctAnswer: 1,
-    explanation: "O princípio enfatiza adaptabilidade e resiliência como capacidades essenciais em ambientes incertos.",
-    domain: "Incerteza",
-    difficulty: "easy"
+    explanation: "O PMBOK 7 e abordagens modernas medem sucesso por valor entregue, satisfação de stakeholders, benefícios realizados - não apenas restrições tradicionais de prazo/custo/escopo.",
+    domain: "Stakeholders",
+    difficulty: "medium"
   }
-];
-
-export const domains = [
-  "Stakeholders",
-  "Equipe",
-  "Abordagem de Desenvolvimento",
-  "Planejamento",
-  "Trabalho do Projeto",
-  "Entrega",
-  "Medição",
-  "Incerteza"
 ];
